@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/로컬DB스키마명?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username:
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+
+  jwt:
+    secret:
+  default:
+    admin_id:
+    admin_pwd:
+
+springdoc:
+  default-produces-media-type: application/json;charset=UTF-8
+  default-consumes-media-type: application/json;charset=UTF-8
+  cache:
+    disabled: true
+  packages-to-scan:
+  api-docs:
+    path:
+
+
+logging:
+  config: classpath:logback-spring-local.xml
+cloud:
+  aws:
+    credentials:
+      access-key:
+      secret-key:
+    s3:
+      bucketName:
+    region:
+      static:
+    stack:
+      auto:
