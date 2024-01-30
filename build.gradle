@@ -25,7 +25,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 //    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     // Lombok
@@ -52,6 +51,12 @@ dependencies {
 
     // AWS
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+    // coolsms
+    implementation 'net.nurigo:sdk:4.3.0'
+
+    // configuration properties
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 }
 
 tasks.named('test') {

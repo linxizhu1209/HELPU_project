@@ -1,6 +1,12 @@
 server:
-  port:8080
+  port: 8080
 spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+logging:
+  config: classpath:logback-spring-local.xml
+message:
+  apikey: ${COOLSMS_APIKEY}
+  api-secret: ${COOLSMS_APISECRET}
+  phone-num: ${COOLSMS_PHONENUMBER}
