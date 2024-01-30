@@ -31,6 +31,9 @@ public class ChatEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_cid", referencedColumnName = "user_cid")
-    private UserEntity users;
+    private UserEntity user;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mate_cid", referencedColumnName = "mate_cid")
+    private MateEntity mate;
 }

@@ -22,12 +22,10 @@ public class ChatRoomEntity {
     private Long chatRoomCid;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @Column(name = "user_cid")
     @JoinColumn(name = "user_cid", referencedColumnName = "user_cid")
     private UserEntity users;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @Column(name = "mate_cid")
-    @JoinColumn(name = "user_cid", referencedColumnName = "user_cid")
-    private UserEntity mates;
+    @JoinColumn(name = "mate_cid", referencedColumnName = "mate_cid")
+    private MateEntity mates;
 }
