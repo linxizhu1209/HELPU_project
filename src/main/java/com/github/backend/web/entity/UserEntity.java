@@ -24,23 +24,27 @@ public class UserEntity extends BaseEntity{
     private String userId;
 
     @NotNull
-    @Column(name = "password")
+    @Column(name = "user_password")
     @Schema(description = "유저 비밀번호", example = "qwer1234")
     private String password;
 
-    @Column(name = "email", length = 30)
+    @Column(name = "user_email", length = 30)
     @Schema(description = "유저 이름", example = "판매자")
     private String email;
 
-    @Column(name = "phone_number", length = 30)
+    @Column(name = "user_nickname", length = 30)
+    @Schema(description = "유저 닉네임", example = "판매자")
+    private String nickname;
+
+    @Column(name = "user_phone", length = 30)
     @Schema(description = "휴대폰번호", example = "010-1111-2222")
     private String phoneNumber;
 
-    @Column(name = "address", length = 100)
+    @Column(name = "user_address", length = 100)
     @Schema(description = "주소", example = "어디일까요~")
     private String address;
 
-    @Column(name = "gender")
+    @Column(name = "user_gender")
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
@@ -59,21 +63,4 @@ public class UserEntity extends BaseEntity{
     @Column(name = "is_deleted", length = 10)
     @Schema(description = "삭제여부", example = "Y")
     private String isDeleted;
-
-    @Column(name = "star_count")
-    @Schema(description = "별점", example = "2.5")
-    private Double starCount;
-
-    @Builder
-    public UserEntity(String userId, String password, String email, String phoneNumber, String address, String loginType, RolesEntity roles, String isDeleted, Double starCount){
-      this.userId = userId;
-      this.password = password;
-      this.email = email;
-      this.phoneNumber = phoneNumber;
-      this.address = address;
-      this.loginType = loginType;
-      this.roles = roles;
-      this.isDeleted = isDeleted;
-      this.starCount = starCount;
-    }
 }
