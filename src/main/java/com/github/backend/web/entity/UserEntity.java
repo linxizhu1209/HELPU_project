@@ -29,7 +29,7 @@ public class UserEntity extends BaseEntity{
     private String password;
 
     @Column(name = "user_email", length = 30)
-    @Schema(description = "유저 이름", example = "판매자")
+    @Schema(description = "유저 이메일", example = "판매자")
     private String email;
 
     @Column(name = "user_nickname", length = 30)
@@ -63,4 +63,17 @@ public class UserEntity extends BaseEntity{
     @Column(name = "is_deleted", length = 10)
     @Schema(description = "삭제여부", example = "Y")
     private String isDeleted;
+
+    @Builder
+    public UserEntity(String userId, String password, String email, String nickname, String phoneNumber, String address, Gender gender, RolesEntity roles, String isDeleted){
+      this.userId = userId;
+      this.password = password;
+      this.email = email;
+      this.nickname = nickname;
+      this.phoneNumber = phoneNumber;
+      this.address = address;
+      this.gender = gender;
+      this.roles = roles;
+      this.isDeleted = isDeleted;
+    }
 }
