@@ -1,12 +1,13 @@
 package com.github.backend.service;
 
-import com.github.backend.repository.CareRepository;
 import com.github.backend.repository.MateRepository;
+import com.github.backend.repository.ServiceApplyRepository;
 import com.github.backend.service.mapper.MateCaringMapper;
 import com.github.backend.web.dto.AppliedCaringDto;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.entity.CareEntity;
 import com.github.backend.web.entity.MateEntity;
+import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MateService {
 
-    private final CareRepository careRepository;
+    private final ServiceApplyRepository careRepository;
     private final MateRepository mateRepository;
 
-    public CommonResponseDto applyCaring(Long careId) {
+    public CommonResponseDto applyCaring(Long careId, CustomUserDetails customUserDetails) {
+        Long mateId = customUserDetails.getUser().getUserCid();
         CareEntity care = careRepository.findById(careId).orElseThrow();
         MateEntity mate = mateRepository.findById(mateId).orElseThrow();
         // 만약 동일한 날짜 같은 시간대에 이미 신청한 도움이 있다면 신청불가능하게끔하기
@@ -30,9 +32,9 @@ public class MateService {
         return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build();
     }
 
-    public List<AppliedCaringDto> viewApplyList(String careStatus) {
+    public List<AppliedCaringDto> viewApplyList(String careStatus,CustomUserDetails customUserDetails) {
 //        try {
-            MateEntity mate = mateRepository.findById(mateId).orElseThrow();
+            MateEntity mate = mateRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow();
             CareStatus status = CareStatus.valueOf(careStatus);
             List<CareEntity> careList = careRepository.findAllByMateAndCareStatus(mate, status);
             return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
