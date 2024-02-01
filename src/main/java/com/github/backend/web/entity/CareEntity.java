@@ -4,17 +4,17 @@ import com.github.backend.web.entity.enums.CareStatus;
 import com.github.backend.web.entity.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Builder
+@AllArgsConstructor
 @Table(name = "care_table")
 public class CareEntity extends BaseEntity{
     @Id
@@ -42,11 +42,15 @@ public class CareEntity extends BaseEntity{
 
     @Column(name = "care_date_time")
     @Schema(description = "도움 시작시간")
-    private LocalDateTime careDateTime;
+    private LocalTime careDateTime;
+
+    @Column(name = "care_date")
+    @Schema(description = "도움 날짜")
+    private LocalDate careDate;
 
     @Column(name = "required_time")
     @Schema(description = "도움 종료시간")
-    private LocalDateTime requiredTime;
+    private LocalTime requiredTime;
 
     @Column(name = "care_status")
     @Schema(description = "진행사항", example = "대기 중")
@@ -60,4 +64,6 @@ public class CareEntity extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mate_cid", referencedColumnName = "mate_cid")
     private MateEntity mate;
+
+
 }
