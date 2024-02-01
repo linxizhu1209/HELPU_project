@@ -2,10 +2,7 @@ package com.github.backend.web.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
@@ -21,5 +18,11 @@ public class RolesEntity {
 
     @Column(name = "roles_name")
     @Schema(description = "권한 이름")
-    private Long rolesName;
+    private String rolesName;
+
+    @Builder
+    public RolesEntity(Long rolesCid, String rolesName){
+        this.rolesCid = rolesCid;
+        this.rolesName = rolesName;
+    }
 }
