@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class ServiceApplyController {
     private final ServiceApplyService serviceApplyService;
 
-    @PostMapping("/service-apply/{userCid}")
+    @PostMapping("/service-apply")
     public ResponseEntity<CommonResponseDto> serviceApply(
             @RequestBody ServiceApplyDto serviceApplyDto){
 
