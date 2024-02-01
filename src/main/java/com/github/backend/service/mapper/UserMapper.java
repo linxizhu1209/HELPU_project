@@ -1,6 +1,4 @@
 package com.github.backend.service.mapper;
-
-import com.github.backend.web.dto.ApplyMateDto;
 import com.github.backend.web.dto.RegisteredUser;
 import com.github.backend.web.entity.MateEntity;
 import com.github.backend.web.entity.UserEntity;

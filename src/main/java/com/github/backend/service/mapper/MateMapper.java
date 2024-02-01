@@ -1,6 +1,6 @@
 package com.github.backend.service.mapper;
 
-import com.github.backend.web.dto.ApplyMateDto;
+import com.github.backend.web.dto.MateDto;
 import com.github.backend.web.entity.MateEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,10 +12,10 @@ public interface MateMapper {
 
     @Mapping(target="mateNickname",source="nickname")
     @Mapping(target="mateGender",source="gender")
-    @Mapping(target="mateAddress",source="address")
+//    @Mapping(target="mateAddress",source="address")
 //    @Mapping(target="mateAge",source="")
 //    @Mapping(target="certificateList",source="")
-    ApplyMateDto MateEntityToDTO(MateEntity mateEntity);
+    MateDto MateEntityToDTO(MateEntity mateEntity);
 
 
 

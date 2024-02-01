@@ -1,10 +1,11 @@
 package com.github.backend.service;
 
+import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.MateRepository;
 import com.github.backend.service.mapper.MateMapper;
 import com.github.backend.service.mapper.UserMapper;
-import com.github.backend.web.dto.ApplyMateDto;
 import com.github.backend.web.dto.CommonResponseDto;
+import com.github.backend.web.dto.MateDto;
 import com.github.backend.web.dto.RegisteredUser;
 import com.github.backend.web.entity.MateEntity;
 import com.github.backend.web.entity.RolesEntity;
@@ -24,6 +25,7 @@ public class MasterService {
     
     private final MateRepository mateRepository;
     private final SendMessageService sendMessageService;
+    private final AuthRepository authRepository;
 
 
     // 메이트 부분
@@ -44,16 +46,17 @@ public class MasterService {
         return CommonResponseDto.builder().code(200).success(true).message("해당 회원의 메이트 인증요청을 처리했습니다.").build();
     }
 
-    public List<ApplyMateDto> findApplyMateList() {
+    public List<MateDto> findApplyMateList() {
         log.info("[GET:MASTER] 관리자의 메이트 조회 요청이 들어왔습니다.");
         List<MateEntity> mateList = mateRepository.findAllByMateStatus(MateStatus.PREPARING);
         return mateList.stream().map(MateMapper.INSTANCE::MateEntityToDTO).toList();
     }
 
-    public ApplyMateDto findMate(Long mateCid) {
+    public MateDto findMate(Long mateCid) {
         log.info("[GET:MASTER] 관리자의 메이트 상세 조회 요청이 들어왔습니다.");
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
-        return ApplyMateDto.builder().mateAge(mate.getMateAge)
+        return MateDto.builder()
+//                .mateAge(mate.getMateAge)
                 .mateGender(mate.getGender()).mateNickname(mate.getNickname())
                 .build();
     }
@@ -62,12 +65,12 @@ public class MasterService {
         log.info("[PUT:MASTER] 관리자의 사용자 블랙리스트 올리기/내리기 요청이 들어왔습니다.");
         if(isBlacklisted){
             MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
-            mate.setIsBlacked = true;
+//            mate.setIsBlacked = true;
             mateRepository.save(mate);
         }
         else{
             MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
-            mate.setIsBlacked = false;
+//            mate.setIsBlacked = false;
             mateRepository.save(mate);
         }
         return CommonResponseDto.builder().code(200).success(true).message("블랙리스트 요청이 성공적으로 처리됐습니다.").build();
@@ -80,21 +83,21 @@ public class MasterService {
     // 사용자 부분
     public List<RegisteredUser> findAllUserList() {
         log.info("[GET:MASTER] 관리자의 사용자 조회 요청이 들어왔습니다.");
-        List<UserEntity> userList = userRepository.findAll();
+        List<UserEntity> userList = authRepository.findAll();
         return userList.stream().map(UserMapper.INSTANCE::userEntityToDTO).toList();
     }
 
     public CommonResponseDto blackingUser(boolean isBlacklisted,Long userCid) {
         log.info("[PUT:MASTER] 관리자의 사용자 블랙리스트 올리기/내리기 요청이 들어왔습니다.");
         if(isBlacklisted){
-            UserEntity user = userRepository.findById(userCid);
-            user.setIsBlacked = true;
-            userRepository.save(user);
+            UserEntity user = authRepository.findById(userCid).orElseThrow();
+//            user.setIsBlacked = true;
+            authRepository.save(user);
         }
         else{
-            UserEntity user = userRepository.findById(userCid);
-            user.setIsBlacked = false;
-            userRepository.save(user);
+            UserEntity user = authRepository.findById(userCid).orElseThrow();
+//            user.setIsBlacked = false;
+            authRepository.save(user);
         }
         return CommonResponseDto.builder().code(200).success(true).message("블랙리스트 요청이 성공적으로 처리됐습니다.").build();
     }
@@ -102,8 +105,9 @@ public class MasterService {
 
     public RegisteredUser findUser(Long userCid) {
         log.info("[GET:MASTER] 관리자의 사용자 상세 조회 요청이 들어왔습니다.");
-        UserEntity user = userRepository.findById(userCid);
-        return RegisteredUser.builder().userAge(user.getUserAge)
+        UserEntity user = authRepository.findById(userCid).orElseThrow();
+        return RegisteredUser.builder()
+//                .userAge(user.getUserAge)
                 .userGender(user.getGender())
                 .username(user.getNickname()).build();
 

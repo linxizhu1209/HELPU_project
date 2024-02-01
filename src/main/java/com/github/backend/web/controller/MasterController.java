@@ -3,8 +3,8 @@ package com.github.backend.web.controller;
 import com.github.backend.properties.CoolsmsProperties;
 import com.github.backend.service.MasterService;
 import com.github.backend.service.SendMessageService;
-import com.github.backend.web.dto.ApplyMateDto;
 import com.github.backend.web.dto.CommonResponseDto;
+import com.github.backend.web.dto.MateDto;
 import com.github.backend.web.dto.RegisteredUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,24 +37,24 @@ public CommonResponseDto registerMate(
 
 @Operation(summary = "메이트 신청목록 확인", description = "메이트로 회원가입 신청한 회원 목록을 조회한다")
 @GetMapping("/mate")
-public ResponseEntity<List<ApplyMateDto>> viewMateList(){
+public ResponseEntity<List<MateDto>> viewMateList(){
     log.info("[GET] 메이트 신청 회원 목록 조회 요청 들어왔습니다.");
-    List<ApplyMateDto> applyMateDto = masterService.findApplyMateList();
+    List<MateDto> applyMateDto = masterService.findApplyMateList();
     return ResponseEntity.ok().body(applyMateDto);
 }
 
 
 
 @Operation(summary = "메이트 상세 확인", description = "메이트 정보를 조회한다")
-@GetMapping("/user/{mateCid}")
-public ResponseEntity<ApplyMateDto> viewMate(@PathVariable Long mateCid){
+@GetMapping("/mate/{mateCid}")
+public ResponseEntity<MateDto> viewMate(@PathVariable Long mateCid){
     log.info("[GET] 메이트 상세 조회 요청 들어왔습니다");
-    ApplyMateDto mateDetail = masterService.findMate(mateCid);
+    MateDto mateDetail = masterService.findMate(mateCid);
     return ResponseEntity.ok().body(mateDetail);
 }
 
 @Operation(summary = "메이트 블랙리스트 전환", description = "메이트 블랙리스트 유무를 체크한다")
-@PutMapping("/user")
+@PutMapping("/mate")
 public CommonResponseDto blackingMate(@RequestParam boolean isBlacklisted,
                                       @RequestParam Long mateCid){
     return masterService.blackingMate(isBlacklisted,mateCid);
@@ -88,11 +88,4 @@ public CommonResponseDto blackingUser(@RequestParam boolean isBlacklisted,
                                       @RequestParam Long userCid){
     return masterService.blackingUser(isBlacklisted,userCid);
 }
-
-
-
-
-
-
-
 }
