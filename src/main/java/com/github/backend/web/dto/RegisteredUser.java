@@ -11,7 +11,8 @@ import lombok.Setter;
 public class RegisteredUser {
 
 private String username;
-private int userAge;
+private String name;
+private String email;
 private Gender userGender;
 
 }
