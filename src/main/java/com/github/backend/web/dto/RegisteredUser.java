@@ -10,9 +10,8 @@ import lombok.Setter;
 @Builder
 public class RegisteredUser {
 
-private String username;
-private String name;
-private String email;
-private Gender userGender;
-
+    private String userName;
+    private String phone;
+    private String email;
+    private Gender userGender;
 }

@@ -2,7 +2,7 @@ package com.github.backend.web.controller;
 
 
 import com.github.backend.service.ServiceApplyService;
-import com.github.backend.web.dto.apply.CommonResponseDto;
+import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.apply.ServiceApplyDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

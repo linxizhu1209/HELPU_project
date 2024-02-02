@@ -1,5 +1,4 @@
-package com.github.backend.web.dto.users;
-
+package com.github.backend.web.dto.request;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -7,19 +6,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// 회원가입 및 수정 등에서 사용
-
 @Getter
 @Setter
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class RequestUserDto {
-    private String userId;
+public class RequestMateDto {
+    private String mateId;
     private String password;
     private String email;
     private String name;
     private String phoneNumber;
     private String gender;
     private String address;
+    private String registrationNum;
     private Long roles;
 }

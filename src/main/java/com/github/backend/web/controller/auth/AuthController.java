@@ -2,6 +2,7 @@ package com.github.backend.web.controller.auth;
 
 import com.github.backend.service.auth.AuthService;
 import com.github.backend.service.auth.UserService;
+import com.github.backend.web.dto.request.RequestMateDto;
 import com.github.backend.web.dto.users.*;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,22 +25,20 @@ public class AuthController {
 
   private final AuthService authService;
   private final UserService userService;
-    @Operation(summary = "회원가입 요청", description = "회원가입을 한다.")
-  //    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @PostMapping("/signup")
+    @Operation(summary = "유저 회원가입 요청", description = "유저 회원가입을 한다.")
+    @PostMapping("/user/signup")
     public ResponseEntity<String> userSignUp(@RequestBody RequestUserDto requestUserDto){
-      log.info("[POST] signup controller 진입");
-
-  //        authService.signup(requestUserDto, multipartFile);
-      authService.signup(requestUserDto);
-      return new ResponseEntity<>("회원가입이 완료되었습니다.", HttpStatus.OK);
+      log.info("[POST] user signup controller 진입");
+      authService.userSignup(requestUserDto);
+      return new ResponseEntity<>("유저 회원가입이 완료되었습니다.", HttpStatus.OK);
     }
-    @Operation(summary = "이메일 중복 확인")
-    @PostMapping("/singup/{userEmail}")
-    public ResponseEntity<String> emailCkeck(@PathVariable String userEmail){
-      log.info("[POST] email check cotroller 진입");
-      String result = authService.userIdCheck(userEmail);
-      return ResponseEntity.ok(result);
+
+    @Operation(summary = "메이트 회원가입 요청", description = "메이트 회원가입을 한다.")
+    @PostMapping("/mate/signup")
+    public ResponseEntity<String> mateSignup(@RequestBody RequestMateDto requestMateDto){
+      log.info("[POST] mate signup controller 진입");
+      authService.mateSignup(requestMateDto);
+      return new ResponseEntity<>("메이트 회원가입이 완료되었습니다.", HttpStatus.OK);
     }
 
     @Operation(summary = "로그인", description = "사용자가 로그인을 한다.")

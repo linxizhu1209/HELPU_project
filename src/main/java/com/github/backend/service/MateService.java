@@ -1,16 +1,22 @@
 package com.github.backend.service;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import com.github.backend.repository.MateRepository;
+import com.github.backend.repository.ProfileImageRepository;
 import com.github.backend.repository.ServiceApplyRepository;
 import com.github.backend.service.mapper.MateCaringMapper;
 import com.github.backend.web.dto.AppliedCaringDto;
 import com.github.backend.web.dto.CommonResponseDto;
+import com.github.backend.web.dto.request.RequestMateDto;
 import com.github.backend.web.entity.CareEntity;
 import com.github.backend.web.entity.MateEntity;
+import com.github.backend.web.entity.ProfileImageEntity;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,6 +24,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MateService {
 
+    private final ImageUploadService imageUploadService;
+    private final ProfileImageRepository profileImageRepository;
+    private final PasswordEncoder passwordEncoder;
     private final ServiceApplyRepository careRepository;
     private final MateRepository mateRepository;
 
@@ -54,5 +63,13 @@ public class MateService {
     public List<AppliedCaringDto> viewAllApplyList() {
         List<CareEntity> careList = careRepository.findAllByCareStatus(CareStatus.WAITING);
         return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
+    }
+
+    public CommonResponseDto updateInfo(RequestMateDto requestMateDto, MultipartFile profileImages) {
+
+        if(requestMateDto.getPassword() != null)
+          requestMateDto.setPassword(passwordEncoder.encode(requestMateDto.getPassword()));
+
+        return CommonResponseDto.builder().code(200).success(true).message("이미지 업로드가 완료되었습니다!").build();
     }
 }
