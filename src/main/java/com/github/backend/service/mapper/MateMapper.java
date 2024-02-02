@@ -10,11 +10,11 @@ import org.mapstruct.factory.Mappers;
 public interface MateMapper {
     MateMapper INSTANCE = Mappers.getMapper(MateMapper.class);
 
-    @Mapping(target="mateNickname",source="nickname")
+    @Mapping(target="mateId",source="userId")
     @Mapping(target="mateGender",source="gender")
-//    @Mapping(target="mateAddress",source="address")
-//    @Mapping(target="mateAge",source="")
-//    @Mapping(target="certificateList",source="")
+    @Mapping(target="email",source="email")
+//    @Mapping(target="matename",source="matename") // mateEntity에 본명 생기면 주석해제
+//    @Mapping(target="registrationNum",source="registrationNum") // mateEntity에 주민등록번호 생기면 주석해제
     MateDto MateEntityToDTO(MateEntity mateEntity);
 
 

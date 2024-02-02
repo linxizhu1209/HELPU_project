@@ -11,11 +11,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MateDto {
-
-    private String mateNickname;
+    private String mateId;
+    private String email;
     private Gender mateGender;
-    private int mateAge;
-//    private String mateAddress;
-//    private List<CertificateDto> certificateList; // 자격증 리스트
+//    private String matename; // 메이트 본명 엔티티에 필드 생기면 주석 해제
+//    private String registrationNum; // 주민등록번호 엔티티에 생기면 주석 해제
 
 }

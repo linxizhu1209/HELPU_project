@@ -8,8 +8,9 @@ import org.mapstruct.factory.Mappers;
 public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    @Mapping(target="username",source="nickname")
+    @Mapping(target="username",source="userId")
     @Mapping(target="userGender",source="gender")
-    @Mapping(target="userAge",source="age") // age 엔티티 추가
+//    @Mapping(target="name",source="name") // userEntity에 본명추가시 주석 해제
+    @Mapping(target="email",source="email")
     RegisteredUser userEntityToDTO(UserEntity userEntity);
 }
