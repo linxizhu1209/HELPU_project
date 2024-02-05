@@ -2,12 +2,13 @@ package com.github.backend.service.auth;
 
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.github.backend.config.security.JwtTokenProvider;
-import com.github.backend.config.security.util.SecurityUtil;
 import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.MateRepository;
 import com.github.backend.repository.RefreshTokenRepository;
 import com.github.backend.repository.RolesRepository;
-import com.github.backend.web.dto.request.RequestMateDto;
+
+import com.github.backend.web.dto.CommonResponseDto;
+import com.github.backend.web.dto.mates.RequestSaveMateDto;
 import com.github.backend.web.dto.users.*;
 import com.github.backend.web.entity.MateEntity;
 import com.github.backend.web.entity.RefreshToken;
@@ -20,9 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,36 +88,42 @@ public class AuthService {
     }
 
     @Transactional
-    public void userSignup(RequestUserDto requestDto) {
-      if (authRepository.existsByUserId(requestDto.getUserId())) {
-        throw new RuntimeException("이미 존재하는 아이디입니다.");
+    public CommonResponseDto userSignup(RequestSaveUserDto requestSaveUserDto) {
+      if (authRepository.existsByUserId(requestSaveUserDto.getUserId())) {
+        throw new IllegalStateException("이미 존재하는 아이디입니다.");
       }
-      requestDto.setPassword(passwordEncoder.encode(requestDto.getPassword()));
+      requestSaveUserDto.setPassword(passwordEncoder.encode(requestSaveUserDto.getPassword()));
 
-      RolesEntity roles = rolesRepository.findById(requestDto.getRoles()).orElseThrow(() -> new NotFoundException("권한이 존재하지 않습니다."));
+      RolesEntity roles = rolesRepository.findById(requestSaveUserDto.getRoles()).orElseThrow(() -> new NotFoundException("권한이 존재하지 않습니다."));
 
       Gender gender;
-      if (requestDto.getGender().equals("남자"))
+      if (requestSaveUserDto.getGender().equals("남자"))
         gender = Gender.MEN;
       else
         gender = Gender.WOMEN;
 
       UserEntity user = UserEntity.builder()
-              .userId(requestDto.getUserId())
-              .password(requestDto.getPassword())
-              .email(requestDto.getEmail())
-              .name(requestDto.getName())
-              .phoneNumber(requestDto.getPhoneNumber())
-              .address(requestDto.getAddress())
+              .userId(requestSaveUserDto.getUserId())
+              .password(requestSaveUserDto.getPassword())
+              .email(requestSaveUserDto.getEmail())
+              .name(requestSaveUserDto.getName())
+              .phoneNumber(requestSaveUserDto.getPhoneNumber())
+              .address(requestSaveUserDto.getAddress())
               .gender(gender)
               .roles(roles)
               .isDeleted(null)
               .build();
       log.info("[build] user = " + user);
       authRepository.save(user);
+
+      return CommonResponseDto.builder()
+              .code(200)
+              .message("유저 회원가입이 완료되었습니다.")
+              .success(true)
+              .build();
     }
 
-    public void mateSignup(RequestMateDto requestMateDto) {
+    public void mateSignup(RequestSaveMateDto requestMateDto) {
         if (mateRepository.existsByMateId(requestMateDto.getMateId())) {
           throw new RuntimeException("이미 존재하는 아이디입니다.");
         }

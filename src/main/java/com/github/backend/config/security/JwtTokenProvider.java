@@ -68,13 +68,13 @@ public class JwtTokenProvider {
   public Authentication getAuthentication(String accessToken) throws ExpiredJwtException{
     // 토큰 복호화 : JWT의 body
     Claims claims = parseClaims(accessToken);
-    if(claims.get(encodeKey) == null) {
+    if(claims.get(AUTHORITIES_KEY) == null) {
       throw new RuntimeException("권한 정보가 없는 토큰입니다.");
     }
 
     // 클레임에서 권한 정보 가져오기
     Collection<? extends GrantedAuthority> authorities =
-            Arrays.stream(claims.get(encodeKey).toString().split(","))
+            Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
 

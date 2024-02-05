@@ -7,13 +7,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// 회원가입 및 수정 등에서 사용
+// 유저 회원가입 DTO
 
 @Getter
 @Setter
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class RequestUserDto {
+public class RequestSaveUserDto {
     private String userId;
     private String password;
     private String email;

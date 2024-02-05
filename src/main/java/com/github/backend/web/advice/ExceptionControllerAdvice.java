@@ -1,11 +1,11 @@
 package com.github.backend.web.advice;
 
-import com.github.backend.service.exception.ImageUploadException;
-import com.github.backend.service.exception.InvalidValueException;
-import com.github.backend.service.exception.NotAcceptException;
-import com.github.backend.service.exception.NotFoundException;
+import com.github.backend.service.exception.*;
+import com.github.backend.web.dto.response.ErrorResponse;
+import com.sun.jdi.request.DuplicateRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -39,5 +39,11 @@ public class ExceptionControllerAdvice {
     public String handleImageUploadException(ImageUploadException iue){
       log.error("이미지 업로드 중에 문제가 발생했습니다. " + iue.getMessage());
       return iue.getMessage();
+    }
+
+    @ExceptionHandler(CommonException.class)
+    public ResponseEntity handleCommonException(CommonException e) {
+      ErrorResponse res = new ErrorResponse(e);
+      return res.build();
     }
 }

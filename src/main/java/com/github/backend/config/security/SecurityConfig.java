@@ -36,8 +36,10 @@ public class SecurityConfig {
 
     // 인증은 필요없는 api
     private final String[] PERMIT_URL = {
+            "/",
+            "/**",
             "/auth/**",
-            "/", "/css/**","/images/**","/js/**","/favicon.ico","/h2-console/**",
+            "/css/**","/images/**","/js/**","/favicon.ico","/h2-console/**",
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/api-docs/**",
@@ -46,12 +48,17 @@ public class SecurityConfig {
 
     // 관리자 권한이 필요한 api
     private final String[] ADMIN_URL = {
-            "api/admin/**"
+            "/api/admin/**"
     };
 
-    // 인증이 필요한 api
-    private final String[] AUTHENTICATION_URL = {
-            "/api/**"
+    // 사용자 페이지 api
+    private final String[] USER_URL = {
+            "/api/user/**"
+    };
+
+    // 메이트 페이지 api
+    private final String[] MATE_URL = {
+            "/api/mate/**"
     };
 
 
@@ -103,9 +110,9 @@ public class SecurityConfig {
               .authorizeHttpRequests((auth) ->
                       auth
                               .requestMatchers(PERMIT_URL).permitAll()
-                              .requestMatchers(ADMIN_URL).hasRole("ADMIN")
-                              .requestMatchers(AUTHENTICATION_URL).authenticated()
-                              .anyRequest().hasRole("ADMIN")
+                              .requestMatchers(ADMIN_URL).hasRole("MASTER")
+                              .requestMatchers(USER_URL).hasRole("USER")
+                              .requestMatchers(MATE_URL).hasRole("MATE")
               )
               .logout((logout) -> {
                 logout.logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout"));
