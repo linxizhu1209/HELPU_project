@@ -56,7 +56,7 @@ public class UserEntity extends BaseEntity{
     @JoinColumn(name = "profile_image_cid", referencedColumnName = "profile_image_cid")
     private ProfileImageEntity profileImage;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "roles_cid", referencedColumnName = "roles_cid")
     private RolesEntity roles;
 
