@@ -69,10 +69,6 @@ public class MateEntity extends BaseEntity{
   @Schema(description = "삭제여부", example = "Y")
   private String isDeleted;
 
-  @Column(name = "star_count")
-  @Schema(description = "별점", example = "2.5")
-  private Double starCount;
-
   @Column(name = "register_status", length = 10)
   @Schema(description = "등록현황", example = "인증 전")
   @Enumerated(EnumType.STRING)
