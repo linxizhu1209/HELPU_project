@@ -34,11 +34,11 @@ public class MasterService {
         String messageContent = "";
         if(isAccept) {
             mate.setMateStatus(MateStatus.COMPLETE);
-            messageContent = mate.getNickname()+"님의 메이트 인증이 허가되었습니다! 로그인할 수 있습니다. ";
+            messageContent = mate.getName()+"님의 메이트 인증이 허가되었습니다! 로그인할 수 있습니다. ";
         }
         else{
             mate.setMateStatus(MateStatus.FAILED);
-            messageContent = mate.getNickname()+"님의 메이트 인증이 실패하였습니다! 사유를 확인하시고 다시 인증해주세요. ";
+            messageContent = mate.getName()+"님의 메이트 인증이 실패하였습니다! 사유를 확인하시고 다시 인증해주세요. ";
         }
         String phoneNum = mate.getPhoneNumber();
         mateRepository.save(mate);
@@ -57,7 +57,7 @@ public class MasterService {
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
         return MateDto.builder()
 //                .mateAge(mate.getMateAge)
-                .mateGender(mate.getGender()).mateNickname(mate.getNickname())
+                .mateGender(mate.getGender()).mateName(mate.getName())
                 .build();
     }
 
@@ -109,7 +109,7 @@ public class MasterService {
         return RegisteredUser.builder()
 //                .userAge(user.getUserAge)
                 .userGender(user.getGender())
-                .username(user.getNickname()).build();
+                .userName(user.getName()).build();
 
     }
 

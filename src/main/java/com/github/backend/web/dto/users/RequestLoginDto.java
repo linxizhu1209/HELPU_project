@@ -16,8 +16,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class RequestLoginDto {
-    @Schema(description = "유저 아이디", name = "user_id", example = "qwer1234")
+    @Schema(description = "아이디", name = "user_id", example = "user1")
     private String userId;
+    @Schema(description = "비밀번호", name = "password", example = "qwer1234")
     private String password;
 
     // Authentication을 implements 한 AbstractAuthenticationToken의 하위 클래스

@@ -2,7 +2,7 @@ package com.github.backend.service;
 
 import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.ServiceApplyRepository;
-import com.github.backend.web.dto.apply.CommonResponseDto;
+import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.apply.ServiceApplyDto;
 import com.github.backend.web.entity.CareEntity;
 import com.github.backend.web.entity.UserEntity;

@@ -3,14 +3,21 @@ package com.github.backend.web.controller;
 import com.github.backend.service.MateService;
 import com.github.backend.web.dto.AppliedCaringDto;
 import com.github.backend.web.dto.CommonResponseDto;
+import com.github.backend.web.dto.users.RequestUpdateDto;
+import com.github.backend.web.dto.users.ResponseMyInfoDto;
+import com.github.backend.web.entity.custom.CustomMateDetails;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -65,6 +72,23 @@ public class MateController {
 //
 //    } 메이트가 도움 취소한 내역을 따로 관리할 수 있는 테이블 생성되면 주석 해제
 
+    @Operation(summary = "메이트 정보 조회", description = "메이트의 정보를 조회한다.")
+    @GetMapping("/mateInfo")
+    public ResponseMyInfoDto findByMateInfo(@AuthenticationPrincipal CustomMateDetails customMateDetails){
+        ResponseMyInfoDto result = mateService.findByMate(customMateDetails);
+        return result;
+    }
 
+    @Operation(summary = "메이트 정보 수정하기", description = "메이트 정보를 수정한다.")
+    @PutMapping(value = "/mateInfo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponseDto mateInfo(
+            @RequestPart(name = "requestUpdateDto") @Parameter(schema =@Schema(type = "string", format = "binary")) RequestUpdateDto requestUpdateDto,
+            @RequestPart(name = "mateProfileImage", required = false) MultipartFile profileImages){
+
+        log.info("[Put] 메이트 정보의 수정 요청이 들어왔습니다");
+      CommonResponseDto result = mateService.updateInfo(requestUpdateDto, profileImages);
+
+      return result;
+    }
 
 }

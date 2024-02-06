@@ -10,9 +10,13 @@ import org.springframework.stereotype.Repository;
 
 import javax.management.relation.Role;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MateRepository extends JpaRepository<MateEntity,Long> {
 
     List<MateEntity> findAllByMateStatus(MateStatus mateStatus);
+
+    Optional<MateEntity> findByMateId(String mateId);
+    boolean existsByMateId(String mateId);
 }

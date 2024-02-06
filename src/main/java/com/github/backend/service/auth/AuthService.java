@@ -2,11 +2,15 @@ package com.github.backend.service.auth;
 
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.github.backend.config.security.JwtTokenProvider;
-import com.github.backend.config.security.util.SecurityUtil;
 import com.github.backend.repository.AuthRepository;
+import com.github.backend.repository.MateRepository;
 import com.github.backend.repository.RefreshTokenRepository;
 import com.github.backend.repository.RolesRepository;
+
+import com.github.backend.web.dto.CommonResponseDto;
+import com.github.backend.web.dto.mates.RequestSaveMateDto;
 import com.github.backend.web.dto.users.*;
+import com.github.backend.web.entity.MateEntity;
 import com.github.backend.web.entity.RefreshToken;
 import com.github.backend.web.entity.RolesEntity;
 import com.github.backend.web.entity.UserEntity;
@@ -17,9 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ public class AuthService {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final AuthRepository authRepository;
+    private final MateRepository mateRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RolesRepository rolesRepository;
     private final JwtTokenProvider jwtTokenProvider;
@@ -86,45 +88,70 @@ public class AuthService {
     }
 
     @Transactional
-    public void signup(RequestUserDto requestDto) {
-        if(authRepository.existsByUserId(requestDto.getUserId())) {
-            throw new RuntimeException("이미 존재하는 아이디입니다.");
+    public CommonResponseDto userSignup(RequestSaveUserDto requestSaveUserDto) {
+      if (authRepository.existsByUserId(requestSaveUserDto.getUserId())) {
+        throw new IllegalStateException("이미 존재하는 아이디입니다.");
+      }
+      requestSaveUserDto.setPassword(passwordEncoder.encode(requestSaveUserDto.getPassword()));
+
+      RolesEntity roles = rolesRepository.findById(requestSaveUserDto.getRoles()).orElseThrow(() -> new NotFoundException("권한이 존재하지 않습니다."));
+
+      Gender gender;
+      if (requestSaveUserDto.getGender().equals("남자"))
+        gender = Gender.MEN;
+      else
+        gender = Gender.WOMEN;
+
+      UserEntity user = UserEntity.builder()
+              .userId(requestSaveUserDto.getUserId())
+              .password(requestSaveUserDto.getPassword())
+              .email(requestSaveUserDto.getEmail())
+              .name(requestSaveUserDto.getName())
+              .phoneNumber(requestSaveUserDto.getPhoneNumber())
+              .address(requestSaveUserDto.getAddress())
+              .gender(gender)
+              .roles(roles)
+              .isDeleted(null)
+              .build();
+      log.info("[build] user = " + user);
+      authRepository.save(user);
+
+      return CommonResponseDto.builder()
+              .code(200)
+              .message("유저 회원가입이 완료되었습니다.")
+              .success(true)
+              .build();
+    }
+
+    public void mateSignup(RequestSaveMateDto requestMateDto) {
+        if (mateRepository.existsByMateId(requestMateDto.getMateId())) {
+          throw new RuntimeException("이미 존재하는 아이디입니다.");
         }
-        requestDto.setPassword(passwordEncoder.encode(requestDto.getPassword()));
+        requestMateDto.setPassword(passwordEncoder.encode(requestMateDto.getPassword()));
 
-        if(!rolesRepository.existsById(requestDto.getRoles()))
-          throw new RuntimeException("권한이 존재하지 않습니다.");
-
-        RolesEntity roles = rolesRepository.findById(requestDto.getRoles()).orElseThrow(() -> new NotFoundException("권한이 존재하지 않습니다."));
+        RolesEntity roles = rolesRepository.findById(requestMateDto.getRoles()).orElseThrow(() -> new NotFoundException("권한이 존재하지 않습니다."));
 
         Gender gender;
-        if(requestDto.getGender().equals("남자"))
+        if (requestMateDto.getGender().equals("남자"))
           gender = Gender.MEN;
         else
           gender = Gender.WOMEN;
 
-        UserEntity user = UserEntity.builder()
-                .userId(requestDto.getUserId())
-                .password(requestDto.getPassword())
-                .email(requestDto.getEmail())
-                .nickname(requestDto.getNickname())
-                .phoneNumber(requestDto.getPhoneNumber())
-                .address(requestDto.getAddress())
+        MateEntity mate = MateEntity.builder()
+                .mateId(requestMateDto.getMateId())
+                .password(requestMateDto.getPassword())
+                .email(requestMateDto.getEmail())
+                .name(requestMateDto.getName())
+                .phoneNumber(requestMateDto.getPhoneNumber())
+                .address(requestMateDto.getAddress())
                 .gender(gender)
                 .roles(roles)
+                .registrationNum(requestMateDto.getRegistrationNum())
                 .isDeleted(null)
                 .build();
 
-
-        log.info("[build] user = " + user);
-        authRepository.save(user);
-        // 프로필 이미지가 있다면 추가
-  //      if(multipartFile != null) {
-  //          ProfileImageEntity uploadImages = imageUploadService.profileUploadImage(multipartFile);
-  //          user.setProfileImage(uploadImages);
-  //          authRepository.save(user);
-  //          log.info("[profileImage] 유저프로필 이미지가 추가되었습니다. uploadedImages = " + uploadImages);
-  //      }
+        log.info("[build] mate = " + mate);
+        mateRepository.save(mate);
     }
 
     /**
@@ -170,5 +197,6 @@ public class AuthService {
         UserEntity users = authRepository.findByUserId(userEmail).orElseThrow(() -> new NotFoundException("사용불가한 이메일 입니다."));
         return "사용 가능한 이메일입니다.";
     }
+
 
 }
