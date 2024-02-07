@@ -1,4 +1,4 @@
-package com.github.backend.web.dto;
+package com.github.backend.web.dto.mates;
 
 import com.github.backend.web.entity.enums.Gender;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @Builder
-public class AppliedCaringDto {
+public class CaringDetailsDto {
 private Long careCid;
 private String userId;
 private LocalDate date;
