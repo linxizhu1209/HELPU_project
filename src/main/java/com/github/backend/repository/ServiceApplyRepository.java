@@ -18,4 +18,6 @@ public interface ServiceApplyRepository extends JpaRepository<CareEntity, Long >
     List<CareEntity> findAllByCareStatus(CareStatus careStatus);
 
     List<CareEntity> findAllByUserAndCareStatus(UserEntity userEntity, CareStatus careStatus);
+
+    Integer countByCareStatus(CareStatus careStatus);
 }
