@@ -69,6 +69,11 @@ public class MateEntity extends BaseEntity{
   @Schema(description = "삭제여부", example = "Y")
   private String isDeleted;
 
+  @Column(name = "is_blacklisted", length = 10)
+  @Schema(description = "블랙리스트등록여부", example = "true")
+  private boolean isBlacklisted;
+
+
   @Column(name = "register_status", length = 10)
   @Schema(description = "등록현황", example = "인증 전")
   @Enumerated(EnumType.STRING)

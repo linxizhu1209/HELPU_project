@@ -1,18 +1,15 @@
 package com.github.backend.web.controller;
 
-import com.github.backend.properties.CoolsmsProperties;
 import com.github.backend.service.MasterService;
-import com.github.backend.service.SendMessageService;
 import com.github.backend.web.dto.CommonResponseDto;
-import com.github.backend.web.dto.MateDto;
+import com.github.backend.web.dto.UnapprovedMateDto;
+import com.github.backend.web.dto.mates.MateDto;
 import com.github.backend.web.dto.RegisteredUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,14 +22,24 @@ import java.util.List;
 public class MasterController {
     private final MasterService masterService;
 
-@Operation(summary = "메이트 인증하기", description = "메이트로 회원가입 신청한 회원을 인증해준다.")
-@PutMapping("")
-public CommonResponseDto registerMate(
-        @RequestParam("mateId") Long mateId,
-        @RequestParam("register") boolean isAccept){
-    log.info("[POST] 메이트 인증완료/거부 요청 들어왔습니다");
-    return masterService.registerMate(mateId,isAccept);
+@Operation(summary = "메이트 승인하기", description = "메이트로 인증요청한 회원을 승인한다.")
+@PutMapping("/approve/{mateCid}")
+public CommonResponseDto approveMate(
+        @PathVariable Long mateCid){
+    log.info("[PUT] 메이트 인증승인 요청 들어왔습니다");
+    return masterService.approveMate(mateCid);
 }
+
+@Operation(summary = "메이트 미승인하기", description = "메이트로 인증요청한 회원을 미승인한다.")
+@PutMapping("/unapproved/{mateCid}")
+public CommonResponseDto unapprovedMate(
+        @PathVariable Long mateCid,
+        UnapprovedMateDto unapprovedMateDto){
+    log.info("[PUT] 메이트 인증 미승인 요청 들어왔습니다");
+    return masterService.unapprovedMate(mateCid,unapprovedMateDto);
+    }
+
+
 
 
 @Operation(summary = "메이트 신청목록 확인", description = "메이트로 회원가입 신청한 회원 목록을 조회한다")
@@ -57,7 +64,7 @@ public ResponseEntity<MateDto> viewMate(@PathVariable Long mateCid){
 @PutMapping("/mate")
 public CommonResponseDto blackingMate(@RequestParam boolean isBlacklisted,
                                       @RequestParam Long mateCid){
-    return masterService.blackingMate(isBlacklisted,mateCid);
+    return masterService.blacklistingMate(isBlacklisted,mateCid);
 }
 
 
@@ -86,6 +93,6 @@ public ResponseEntity<RegisteredUser> viewUser(@PathVariable Long userCid){
 @PutMapping("/user")
 public CommonResponseDto blackingUser(@RequestParam boolean isBlacklisted,
                                       @RequestParam Long userCid){
-    return masterService.blackingUser(isBlacklisted,userCid);
+    return masterService.blacklistingUser(isBlacklisted,userCid);
 }
 }
