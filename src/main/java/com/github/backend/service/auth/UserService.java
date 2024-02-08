@@ -2,12 +2,15 @@ package com.github.backend.service.auth;
 
 import com.github.backend.config.security.util.SecurityUtil;
 import com.github.backend.repository.AuthRepository;
+import com.github.backend.repository.MateRepository;
 import com.github.backend.service.exception.CommonException;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.users.RequestUpdateDto;
 import com.github.backend.web.dto.users.ResponseMyInfoDto;
 import com.github.backend.web.dto.users.ResponseUserDto;
+import com.github.backend.web.entity.MateEntity;
 import com.github.backend.web.entity.UserEntity;
+import com.github.backend.web.entity.custom.CustomMateDetails;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +30,18 @@ import com.github.backend.service.exception.NotFoundException;
 @Transactional(readOnly = true)
 public class UserService implements UserDetailsService {
     private final AuthRepository authRepository;
+    private final MateRepository mateRepository;
     private final PasswordEncoder passwordEncoder;
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-      UserEntity user = authRepository.findByUserId(userId).orElseThrow(() -> new UsernameNotFoundException("userId: " + userId + "를 데이터베이스에서 찾을 수 없습니다."));
-      return new CustomUserDetails(user);
+      UserEntity users = authRepository.findByUserId(userId).isPresent() == false ? null : authRepository.findByUserId(userId).get();
+      MateEntity mates = mateRepository.findByMateId(userId).isPresent() == false ? null : mateRepository.findByMateId(userId).get();
+      if(users == null){
+        return new CustomMateDetails(mates);
+      }if(mates == null){
+        return new CustomUserDetails(users);
+      }
+      return null;
     }
 
     @Transactional(readOnly = true)
