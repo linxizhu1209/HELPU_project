@@ -6,8 +6,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+@Order(1)
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -31,9 +33,9 @@ public class rolesLoaderMPL implements CommandLineRunner {
                     .build();
 
             rolesRepository.save(defaultRole);
-            log.info("[CreateRoles] 권한이 생성되었습니다. 추가된 권한 = " + rolesName);
+            log.debug("[CreateRoles] 권한이 생성되었습니다. 추가된 권한 = " + rolesName);
         }else {
-            log.info("[CreateAdminUser] 이미 관리자 계정이 존재하여 생성하지 않습니다.");
+            log.debug("[CreateAdminUser] 이미 관리자 계정이 존재하여 생성하지 않습니다.");
         }
       }
     }
