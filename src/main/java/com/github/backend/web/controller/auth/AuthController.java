@@ -36,10 +36,10 @@ public class AuthController {
 
     @Operation(summary = "메이트 회원가입 요청", description = "메이트 회원가입을 한다.")
     @PostMapping("/mate/signup")
-    public ResponseEntity<String> mateSignup(@RequestBody RequestSaveMateDto requestMateDto){
+    public CommonResponseDto mateSignup(@RequestBody RequestSaveMateDto requestMateDto){
         log.info("[POST] mate signup controller 진입");
-        authService.mateSignup(requestMateDto);
-        return new ResponseEntity<>("메이트 회원가입이 완료되었습니다.", HttpStatus.OK);
+        CommonResponseDto result = authService.mateSignup(requestMateDto);
+        return result;
     }
 
     @Operation(summary = "로그인", description = "사용자가 로그인을 한다.")
@@ -74,7 +74,7 @@ public class AuthController {
     @Operation(summary = "해당 아이디 유저 로그인 정보")
     @GetMapping("/{userId}")
     public ResponseEntity<ResponseUserDto> getUserInfo(@PathVariable String userId) {
-      return ResponseEntity.ok(userService.getLoginUserInfo(userId));
+        return ResponseEntity.ok(userService.getLoginUserInfo(userId));
     }
 
     @Operation(summary = "현재 로그인 정보")

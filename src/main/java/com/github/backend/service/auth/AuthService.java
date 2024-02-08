@@ -1,12 +1,12 @@
 package com.github.backend.service.auth;
 
-import com.amazonaws.services.kms.model.NotFoundException;
 import com.github.backend.config.security.JwtTokenProvider;
 import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.MateRepository;
 import com.github.backend.repository.RefreshTokenRepository;
 import com.github.backend.repository.RolesRepository;
 
+import com.github.backend.service.exception.NotFoundException;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.mates.RequestSaveMateDto;
 import com.github.backend.web.dto.users.*;
@@ -51,13 +51,11 @@ public class AuthService {
 
     @Transactional
     public TokenDto login(RequestLoginDto requestDTO) {
-        UserEntity users = authRepository.findByUserId(requestDTO.getUserId()).orElseThrow(() -> new NotFoundException("아이디 혹은 비밀번호를 틀리셨습니다."));
-        String isDeleted = users.getIsDeleted();
-        if(isDeleted != null && isDeleted.equals("deleted"))
-          throw new NotFoundException("이미 탈퇴한 계정입니다.");
-
-        if(!passwordEncoder.matches(requestDTO.getPassword(), users.getPassword()))
+        UserEntity users = authRepository.findByUserId(requestDTO.getUserId()).isPresent() == false ? null : authRepository.findByUserId(requestDTO.getUserId()).get();
+        MateEntity mates = mateRepository.findByMateId(requestDTO.getUserId()).isPresent() == false ? null : mateRepository.findByMateId(requestDTO.getUserId()).get();
+        if(users == null && mates == null){
           throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
+        }
 
         // 1. ID(email)/PW 기반으로 AuthenticationToken 생성
         UsernamePasswordAuthenticationToken authenticationToken = requestDTO.toAuthentication();
@@ -65,10 +63,33 @@ public class AuthService {
         // authenticate 메서드가 실행이 될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드가 실행됨
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        // 3. 인증 정보를 기반으로 JWT토큰 생성
-        String accessToken = jwtTokenProvider.createAccessToken(authentication, users.getRoles().getRolesName());
-        String refreshToken = jwtTokenProvider.createRefreshToken(authentication, users.getRoles().getRolesName());
+        String accessToken = "";
+        String refreshToken = "";
 
+
+        // 3. 인증 정보를 기반으로 JWT토큰 생성
+        if(users != null){
+          String isDeletedUser = users.getIsDeleted();
+          if(isDeletedUser != null && isDeletedUser.equals("deleted"))
+            throw new NotFoundException("해당 사용자는 탈퇴한 계정입니다.");
+
+          if(!passwordEncoder.matches(requestDTO.getPassword(), users.getPassword()))
+            throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
+
+          accessToken = jwtTokenProvider.createAccessToken(authentication, users.getRoles().getRolesName());
+          refreshToken = jwtTokenProvider.createRefreshToken(authentication, users.getRoles().getRolesName());
+
+        }else if(mates != null){
+          String isDeletedMate = mates.getIsDeleted();
+          if(isDeletedMate != null && isDeletedMate.equals("deleted"))
+            throw new NotFoundException("해당 메이트는 탈퇴한 계정입니다.");
+
+          if(!passwordEncoder.matches(requestDTO.getPassword(), mates.getPassword()))
+            throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
+
+          accessToken = jwtTokenProvider.createAccessToken(authentication, mates.getRoles().getRolesName());
+          refreshToken = jwtTokenProvider.createRefreshToken(authentication, mates.getRoles().getRolesName());
+        }
 
         // 4. RefreshToken 저장
         RefreshToken refreshTokenResult = RefreshToken.builder()
@@ -123,7 +144,7 @@ public class AuthService {
               .build();
     }
 
-    public void mateSignup(RequestSaveMateDto requestMateDto) {
+    public CommonResponseDto mateSignup(RequestSaveMateDto requestMateDto) {
         if (mateRepository.existsByMateId(requestMateDto.getMateId())) {
           throw new RuntimeException("이미 존재하는 아이디입니다.");
         }
@@ -152,6 +173,12 @@ public class AuthService {
 
         log.info("[build] mate = " + mate);
         mateRepository.save(mate);
+
+       return CommonResponseDto.builder()
+                .code(200)
+                .message("메이트 회원가입이 완료되었습니다.")
+                .success(true)
+                .build();
     }
 
     /**
