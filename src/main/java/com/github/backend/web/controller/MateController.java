@@ -1,8 +1,11 @@
 package com.github.backend.web.controller;
 
 import com.github.backend.service.MateService;
-import com.github.backend.web.dto.AppliedCaringDto;
 import com.github.backend.web.dto.CommonResponseDto;
+import com.github.backend.web.dto.mates.CaringDetailsDto;
+import com.github.backend.web.dto.mates.CaringDto;
+import com.github.backend.web.dto.mates.MainPageDto;
+import com.github.backend.web.dto.mates.MyPageDto;
 import com.github.backend.web.dto.users.RequestUpdateDto;
 import com.github.backend.web.dto.users.ResponseMyInfoDto;
 import com.github.backend.web.entity.custom.CustomMateDetails;
@@ -30,47 +33,76 @@ public class MateController {
 
     private final MateService mateService;
 
+    @Operation(summary ="메이트 메인페이지", description = "메이트의 메인페이지 조회")
+    @GetMapping("")
+    public ResponseEntity mainPage(){
+        // 신규요청 도움 건의 개수를 보여준다("대기중"상태인 도움 개수)
+        MainPageDto mainPageDto = mateService.countWaitingCare();
+        return ResponseEntity.ok().body(mainPageDto);
+    }
+
+    @Operation(summary ="메이트 마이페이지", description = "메이트의 마이페이지 조회")
+    @GetMapping("/mypage")
+    public ResponseEntity myPage(@AuthenticationPrincipal CustomMateDetails customMateDetails){
+        // 도움 상태에 따른 개수 및 별점을 보여준다
+        MyPageDto myPageDto = mateService.countCareStatus(customMateDetails);
+        return ResponseEntity.ok().body(myPageDto);
+    }
+
     @Operation(summary = "도움 지원하기", description = "진행중인 도움 모집건에 지원한다.")
-    @PostMapping("")
-    public CommonResponseDto applyCaring(@PathVariable Long careId,
+    @PostMapping("/{careCid}")
+    public CommonResponseDto applyCaring(@PathVariable Long careCid,
                                          @AuthenticationPrincipal CustomUserDetails customUserDetails){
         log.info("[GET] 메이트 로그인 후 메인화면 조회 요청 들어왔습니다");
-        return mateService.applyCaring(careId,customUserDetails);
+        return mateService.applyCaring(careCid,customUserDetails);
     }
-
-    @Operation(summary = "지원한 도움 목록 조회", description = "지원한 도움 목록을 조회한다/진행중/완료")
-    @GetMapping("/applyCarelist")
-    public ResponseEntity<List<AppliedCaringDto>> viewApplyList(
-            @RequestParam String careStatus,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
-    ){
-        List<AppliedCaringDto> applyCaringList = mateService.viewApplyList(careStatus,customUserDetails);
-        return ResponseEntity.ok().body(applyCaringList);
-    }
-
-
-    @Operation(summary = "전체 도움 목록 조회", description = "현재 대기중인 전체 도움 목록을 조회한다")
-    @GetMapping("/all-applyCarelist")
-    public ResponseEntity<List<AppliedCaringDto>> viewAllApplyList(){
-        List<AppliedCaringDto> applyCaringList = mateService.viewAllApplyList();
-        return ResponseEntity.ok().body(applyCaringList);
-    }
-
-
 
     @Operation(summary = "도움 완료하기", description = "도움을 끝내고 도움 완료한다")
     @PutMapping("/finish/{careCid}")
-    public CommonResponseDto finishCaring(@PathVariable Long careCid){
-        return mateService.finishCaring(careCid);
+    public CommonResponseDto finishCaring(@PathVariable Long careCid,
+                                          @AuthenticationPrincipal CustomMateDetails customMateDetails){
+        return mateService.finishCaring(careCid,customMateDetails);
     }
 
-//
-//    @Operation(summary = "도움 취소하기", description = "지원한 도움을 취소한다")
-//    @PutMapping("/cancel/{careCid}")
-//    public CommonResponseDto cancelCaring(@RequestParam Long careCid){
-//        return mateService.cancelCaring(careCid);
-//
-//    } 메이트가 도움 취소한 내역을 따로 관리할 수 있는 테이블 생성되면 주석 해제
+
+    @Operation(summary = "도움 취소하기", description = "지원한 도움을 취소한다")
+    @PutMapping("/cancel/{careCid}")
+    public CommonResponseDto cancelCaring(@PathVariable Long careCid,
+                                          @AuthenticationPrincipal CustomMateDetails customMateDetails){
+        return mateService.cancelCaring(careCid,customMateDetails);
+    }
+
+    @Operation(summary = "지원한 도움 목록 조회", description = "지원한 도움 목록을 조회한다/진행중/완료")
+    @GetMapping("/CareHistory")
+    public ResponseEntity<List<CaringDto>> viewApplyList(
+            @RequestParam String careStatus,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ){
+        List<CaringDto> caringList = mateService.viewApplyList(careStatus,customUserDetails);
+        return ResponseEntity.ok().body(caringList);
+    }
+
+
+    @Operation(summary = "대기중인 도움 목록 조회", description = "현재 대기중인 전체 도움 목록을 조회한다")
+    @GetMapping("/waitingCarelist")
+    public ResponseEntity<List<CaringDto>> viewAllApplyList(){
+        log.info("대기중인 도움 목록 조회 요청 들어왔습니다.");
+        List<CaringDto> caringList = mateService.viewAllApplyList();
+        return ResponseEntity.ok().body(caringList);
+    }
+
+
+    @Operation(summary = "도움 상세정보 조회", description = "도움 상세정보를 조회한다")
+    @GetMapping("/detailCare/{careCid}")
+    public ResponseEntity<CaringDetailsDto> viewDetailCareList(
+            @PathVariable Long careCid,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ){
+        CaringDetailsDto careDetail = mateService.viewCareDetail(careCid,customUserDetails);
+        return ResponseEntity.ok().body(careDetail);
+    }
+
+//---------------------------------------------------------------------------
 
     @Operation(summary = "메이트 정보 조회", description = "메이트의 정보를 조회한다.")
     @GetMapping("/mateInfo")
