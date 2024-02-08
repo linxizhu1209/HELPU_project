@@ -10,6 +10,7 @@ import com.github.backend.web.dto.apply.UserProceedingDto;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,13 +27,10 @@ public class ServiceApplyController {
     @PostMapping("/service-apply")
     public ResponseEntity<CommonResponseDto> serviceApply(@RequestBody ServiceApplyDto serviceApplyDto,
                                                           @AuthenticationPrincipal CustomUserDetails customUserDetails){
-        log.info("serviceApplyDto: " + serviceApplyDto);
-        log.info("customUserDetails: " + customUserDetails);
+        log.debug("serviceApplyDto: {}", serviceApplyDto.toString());
         CommonResponseDto registerService = serviceApplyService.applyService(serviceApplyDto, customUserDetails);
 
         return ResponseEntity.ok().body(registerService);
-
-
     }
 
     @GetMapping("/status")
