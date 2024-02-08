@@ -65,5 +65,8 @@ public class CareEntity extends BaseEntity{
     @JoinColumn(name = "mate_cid", referencedColumnName = "mate_cid")
     private MateEntity mate;
 
+    @Column(name = "service_content")
+    @Schema(description = "서비스 내용")
+    private String content;
 
 }

@@ -51,6 +51,7 @@ public class ServiceApplyService {
                 .requiredTime(LocalTime.parse(serviceApplyDto.getEndTime()))
                 .gender(serviceApplyDto.getGender())
                 .cost(serviceApplyDto.getCost())
+                .content(serviceApplyDto.getContent())
                 .careStatus(CareStatus.WAITING)
                 .build();
 
