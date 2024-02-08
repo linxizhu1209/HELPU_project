@@ -41,31 +41,36 @@ public class MateService {
     private final MateRepository mateRepository;
     private final MateCareHistoryRepository mateCareHistoryRepository;
     private final RatingRepository ratingRepository;
+    private final SendMessageService sendMessageService;
 
     public CommonResponseDto applyCaring(Long careId, CustomUserDetails customUserDetails) {
         Long mateId = customUserDetails.getUser().getUserCid();
         CareEntity care = careRepository.findById(careId).orElseThrow();
         MateEntity mate = mateRepository.findById(mateId).orElseThrow();
         // 만약 동일한 날짜 같은 시간대에 이미 신청한 도움이 있다면 신청불가능하게끔하기
-        List<MateCareHistoryEntity> mateCareHistoryEntities = mateCareHistoryRepository.findAllByMateAndMateCareStatus(mate,MateCareStatus.IN_PROGRESS);
+        List<MateCareHistoryEntity> mateCareHistoryEntities = mateCareHistoryRepository.findAllByMateAndMateCareStatus(mate, MateCareStatus.IN_PROGRESS);
         List<CareEntity> careEntities = mateCareHistoryEntities.stream().map(MateCareHistoryEntity::getCare).toList();
-        for(CareEntity caring:careEntities) {
+        for (CareEntity caring : careEntities) {
             if (caring.getCareDate() == care.getCareDate()) {
                 return CommonResponseDto.builder().code(404).success(false).message("이미 같은 날짜에 신청한 도움이 있어, 신청이 불가능합니다!").build();
             }
         }
         care.setMate(mate);
         care.setCareStatus(CareStatus.IN_PROGRESS);
+//        String messageContent = care.getContent + "가 매칭되었습니다!";
+//        String phoneNum = care.getUser().getPhoneNumber();
+//        sendMessageService.sendMessage(phoneNum,messageContent);
+
         MateCareHistoryEntity mateCareHistory = MateCareHistoryEntity.builder().mate(mate).care(care).mateCareStatus(MateCareStatus.IN_PROGRESS).build();
         mateCareHistoryRepository.save(mateCareHistory);
         careRepository.save(care);
         return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build();
     }
 
-    public CommonResponseDto finishCaring(Long careCid,CustomMateDetails customMateDetails) {
+    public CommonResponseDto finishCaring(Long careCid, CustomMateDetails customMateDetails) {
         CareEntity care = careRepository.findById(careCid).orElseThrow();
         care.setCareStatus(CareStatus.HELP_DONE);
-        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care,customMateDetails.getMate());
+        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care, customMateDetails.getMate());
         mateCareHistory.setMateCareStatus(MateCareStatus.HELP_DONE);
         careRepository.save(care);
         mateCareHistoryRepository.save(mateCareHistory);
@@ -73,29 +78,30 @@ public class MateService {
     }
 
 
-    public CommonResponseDto cancelCaring(Long careCid,CustomMateDetails customMateDetails) {
+    public CommonResponseDto cancelCaring(Long careCid, CustomMateDetails customMateDetails) {
         CareEntity care = careRepository.findById(careCid).orElseThrow();
         care.setCareStatus(CareStatus.WAITING);
         care.setMate(null);
-        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care,customMateDetails.getMate());
+        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care, customMateDetails.getMate());
         mateCareHistory.setMateCareStatus(MateCareStatus.CANCEL);
         careRepository.save(care);
         mateCareHistoryRepository.save(mateCareHistory);
+//        String messageContent = care.getContent + "매칭된 메이트가 도움을 취소하였습니다! 아쉽지만 새로운 메이트를 기다려주세요!";
+//        String phoneNum = care.getUser().getPhoneNumber();
+//        sendMessageService.sendMessage(phoneNum,messageContent);
+
+
         return CommonResponseDto.builder().code(200).success(true)
                 .message("도움을 성공적으로 취소했습니다!").build();
-    };
+    }
+
+    ;
 
     public List<CaringDto> viewApplyList(String careStatus, CustomUserDetails customUserDetails) {
-//        try {
-        // 진행중,완료,취소 상태 뭘 누르냐에 따라 그 상태에 해당하는 내역만 보여주도록
-            MateEntity mate = mateRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow();
-            CareStatus status = CareStatus.valueOf(careStatus);
-            List<CareEntity> careList = careRepository.findAllByMateAndCareStatus(mate, status);
-            return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
-//        } catch (IllegalArgumentException iae) {
-//            // 존재하지 않는 상태입니다.
-//            return throw new RuntimeException();
-//        }
+        MateEntity mate = mateRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow();
+        CareStatus status = CareStatus.valueOf(careStatus);
+        List<CareEntity> careList = careRepository.findAllByMateAndCareStatus(mate, status);
+        return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
     }
 
 
@@ -108,22 +114,22 @@ public class MateService {
     @Transactional
     public CommonResponseDto updateInfo(RequestUpdateDto requestUpdateDto, MultipartFile profileImages) {
 
-      if(!mateRepository.existsById(requestUpdateDto.getCid())){
-        throw new CommonException("아이디가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE);
-      }
+        if (!mateRepository.existsById(requestUpdateDto.getCid())) {
+            throw new CommonException("아이디가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE);
+        }
 
-      MateEntity mate = mateRepository.findById(requestUpdateDto.getCid()).get();
-      if(requestUpdateDto.getPassword() != null) {
-        requestUpdateDto.setPassword(passwordEncoder.encode(requestUpdateDto.getPassword()));
-        mate.setEmail(requestUpdateDto.getEmail());
-        mate.setPassword(requestUpdateDto.getPassword());
-        mate.setPhoneNumber(requestUpdateDto.getPhoneNumber());
-      }else{
-        mate.setEmail(requestUpdateDto.getEmail());
-        mate.setPhoneNumber(requestUpdateDto.getPhoneNumber());
-      }
-      log.info("[build] update mate = " + mate);
-      mateRepository.save(mate);
+        MateEntity mate = mateRepository.findById(requestUpdateDto.getCid()).get();
+        if (requestUpdateDto.getPassword() != null) {
+            requestUpdateDto.setPassword(passwordEncoder.encode(requestUpdateDto.getPassword()));
+            mate.setEmail(requestUpdateDto.getEmail());
+            mate.setPassword(requestUpdateDto.getPassword());
+            mate.setPhoneNumber(requestUpdateDto.getPhoneNumber());
+        } else {
+            mate.setEmail(requestUpdateDto.getEmail());
+            mate.setPhoneNumber(requestUpdateDto.getPhoneNumber());
+        }
+        log.info("[build] update mate = " + mate);
+        mateRepository.save(mate);
 
 //      if(profileImages != null) {
 //          ProfileImageEntity uploadImages = imageUploadService.profileUploadImage(multipartFile);
@@ -131,23 +137,23 @@ public class MateService {
 //          authRepository.save(user);
 //          log.info("[profileImage] 메이트 프로필 이미지가 추가되었습니다. uploadedImages = " + uploadImages);
 //      }
-      return CommonResponseDto.builder()
-              .code(200)
-              .message("메이트 정보가 성공적으로 변경되었습니다.")
-              .success(true)
-              .build();
+        return CommonResponseDto.builder()
+                .code(200)
+                .message("메이트 정보가 성공적으로 변경되었습니다.")
+                .success(true)
+                .build();
     }
 
-  public ResponseMyInfoDto findByMate(CustomMateDetails customUserDetails) {
-      MateEntity mate = mateRepository.findById(customUserDetails.getMate().getMateCid()).orElseThrow(() -> new NotFoundException("존재하지 않는 메이트입니다."));
-      return ResponseMyInfoDto.builder()
-            .cid(mate.getMateCid())
-            .name(mate.getName())
-            .id(mate.getMateId())
-            .email(mate.getEmail())
-            .phoneNumber(mate.getPhoneNumber())
-            .build();
-  }
+    public ResponseMyInfoDto findByMate(CustomMateDetails customUserDetails) {
+        MateEntity mate = mateRepository.findById(customUserDetails.getMate().getMateCid()).orElseThrow(() -> new NotFoundException("존재하지 않는 메이트입니다."));
+        return ResponseMyInfoDto.builder()
+                .cid(mate.getMateCid())
+                .name(mate.getName())
+                .id(mate.getMateId())
+                .email(mate.getEmail())
+                .phoneNumber(mate.getPhoneNumber())
+                .build();
+    }
 
     public CaringDetailsDto viewCareDetail(Long careCid, CustomUserDetails customUserDetails) {
         CareEntity care = careRepository.findById(careCid).orElseThrow();
@@ -164,15 +170,29 @@ public class MateService {
     public MyPageDto countCareStatus(CustomMateDetails customMateDetails) {
         MateEntity mate = customMateDetails.getMate();
         int waitingCount = careRepository.countByCareStatus(CareStatus.WAITING);
-        int inProgressCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.IN_PROGRESS,mate);
-        int finishCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.HELP_DONE,mate);
-        int cancelCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.CANCEL,mate);
+        int inProgressCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.IN_PROGRESS, mate);
+        int finishCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.HELP_DONE, mate);
+        int cancelCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.CANCEL, mate);
         MateRatingEntity mateRatingEntity = ratingRepository.findByMate(mate).orElseThrow();
-        double mateRating = mateRatingEntity.getTotalRating()/mateRatingEntity.getRatingCount();
+        double mateRating = mateRatingEntity.getTotalRating() / mateRatingEntity.getRatingCount();
         return MyPageDto.builder().waitingCount(waitingCount).
                 inProgressCount(inProgressCount).finishCount(finishCount)
                 .cancelCount(cancelCount).mateRating(mateRating).build();
     }
-}
 
+    public CommonResponseDto completePayment(Long careCid, boolean isCompletedPayment) {
+
+        CareEntity care = careRepository.findById(careCid).orElseThrow();
+        if (isCompletedPayment) {
+            care.setCareStatus(CareStatus.COMPLETE_PAYMENT);
+        } else {
+            care.setCareStatus(CareStatus.INCOMPLETE_PAYMENT);
+//        String messageContent = care.getContent + "의 결제가 완료되지않아 메이트가 기다리고있어요ㅠㅠ 입금을 완료해주세요!";
+//        String phoneNum = care.getUser().getPhoneNumber();
+//        sendMessageService.sendMessage(phoneNum,messageContent);
+        }
+        careRepository.save(care);
+        return CommonResponseDto.builder().code(200).success(true).message("결제 상태가 성공적으로 변경되었습니다!").build();
+    }
+}
 

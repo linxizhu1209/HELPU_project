@@ -72,6 +72,14 @@ public class MateController {
         return mateService.cancelCaring(careCid,customMateDetails);
     }
 
+    @Operation(summary = "도움 결제완료", description = "도움에 대한 결제가 됐을 경우 완료한다")
+    @PutMapping("/iscompletedPayment")
+    public CommonResponseDto completePayment(@RequestParam Long careCid,
+                                          @RequestParam boolean isCompletedPayment
+                                          ){
+        return mateService.completePayment(careCid,isCompletedPayment);
+    }
+
     @Operation(summary = "지원한 도움 목록 조회", description = "지원한 도움 목록을 조회한다/진행중/완료")
     @GetMapping("/CareHistory")
     public ResponseEntity<List<CaringDto>> viewApplyList(
