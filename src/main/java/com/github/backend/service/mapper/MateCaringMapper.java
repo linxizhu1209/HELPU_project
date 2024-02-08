@@ -14,7 +14,7 @@ public interface MateCaringMapper {
         @Mapping(target="date",source="careDate")
         @Mapping(target="startTime",source="careDateTime")
         @Mapping(target="finishTime",source="requiredTime")
-//        @Mapping(target="content",source="content") // careEntity에 content관련 필드 생성 시 주석 해제
+        @Mapping(target="content",source="content")
         CaringDto CareEntityToDTO(CareEntity careEntity);
 
     }
