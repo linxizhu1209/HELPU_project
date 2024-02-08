@@ -144,7 +144,7 @@ public class AuthService {
               .build();
     }
 
-    public void mateSignup(RequestSaveMateDto requestMateDto) {
+    public CommonResponseDto mateSignup(RequestSaveMateDto requestMateDto) {
         if (mateRepository.existsByMateId(requestMateDto.getMateId())) {
           throw new RuntimeException("이미 존재하는 아이디입니다.");
         }
@@ -173,6 +173,12 @@ public class AuthService {
 
         log.info("[build] mate = " + mate);
         mateRepository.save(mate);
+
+       return CommonResponseDto.builder()
+                .code(200)
+                .message("메이트 회원가입이 완료되었습니다.")
+                .success(true)
+                .build();
     }
 
     /**
