@@ -64,6 +64,11 @@ public class UserEntity extends BaseEntity{
     @Schema(description = "삭제여부", example = "Y")
     private String isDeleted;
 
+    @Column(name = "is_blacklisted", length = 10)
+    @Schema(description = "블랙리스트등록여부", example = "true")
+    private boolean isBlacklisted;
+
+
     @Builder
     public UserEntity(String userId, String password, String email, String name, String phoneNumber, String address, Gender gender, RolesEntity roles, String isDeleted){
       this.userId = userId;
