@@ -1,6 +1,6 @@
 package com.github.backend.service.mapper;
 
-import com.github.backend.web.dto.MateDto;
+import com.github.backend.web.dto.mates.MateDto;
 import com.github.backend.web.entity.MateEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

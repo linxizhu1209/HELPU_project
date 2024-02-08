@@ -1,23 +1,25 @@
 package com.github.backend.service;
 
-import com.github.backend.repository.MateRepository;
-import com.github.backend.repository.ProfileImageRepository;
-import com.github.backend.repository.ServiceApplyRepository;
+import com.github.backend.repository.*;
 import com.github.backend.service.exception.CommonException;
 import com.github.backend.service.exception.NotFoundException;
 import com.github.backend.service.mapper.MateCaringMapper;
-import com.github.backend.web.dto.AppliedCaringDto;
 import com.github.backend.web.dto.CommonResponseDto;
-import com.github.backend.web.dto.mates.RequestSaveMateDto;
+import com.github.backend.web.dto.mates.CaringDetailsDto;
+import com.github.backend.web.dto.mates.CaringDto;
+import com.github.backend.web.dto.mates.MainPageDto;
+import com.github.backend.web.dto.mates.MyPageDto;
 import com.github.backend.web.dto.users.RequestUpdateDto;
 import com.github.backend.web.dto.users.ResponseMyInfoDto;
 import com.github.backend.web.entity.CareEntity;
+import com.github.backend.web.entity.MateCareHistoryEntity;
 import com.github.backend.web.entity.MateEntity;
-import com.github.backend.web.entity.UserEntity;
+import com.github.backend.web.entity.MateRatingEntity;
 import com.github.backend.web.entity.custom.CustomMateDetails;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
 import com.github.backend.web.entity.enums.ErrorCode;
+import com.github.backend.web.entity.enums.MateCareStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,20 +39,55 @@ public class MateService {
     private final PasswordEncoder passwordEncoder;
     private final ServiceApplyRepository careRepository;
     private final MateRepository mateRepository;
+    private final MateCareHistoryRepository mateCareHistoryRepository;
+    private final RatingRepository ratingRepository;
 
     public CommonResponseDto applyCaring(Long careId, CustomUserDetails customUserDetails) {
         Long mateId = customUserDetails.getUser().getUserCid();
         CareEntity care = careRepository.findById(careId).orElseThrow();
         MateEntity mate = mateRepository.findById(mateId).orElseThrow();
         // 만약 동일한 날짜 같은 시간대에 이미 신청한 도움이 있다면 신청불가능하게끔하기
+        List<MateCareHistoryEntity> mateCareHistoryEntities = mateCareHistoryRepository.findAllByMateAndMateCareStatus(mate,MateCareStatus.IN_PROGRESS);
+        List<CareEntity> careEntities = mateCareHistoryEntities.stream().map(MateCareHistoryEntity::getCare).toList();
+        for(CareEntity caring:careEntities) {
+            if (caring.getCareDate() == care.getCareDate()) {
+                return CommonResponseDto.builder().code(404).success(false).message("이미 같은 날짜에 신청한 도움이 있어, 신청이 불가능합니다!").build();
+            }
+        }
         care.setMate(mate);
         care.setCareStatus(CareStatus.IN_PROGRESS);
+        MateCareHistoryEntity mateCareHistory = MateCareHistoryEntity.builder().mate(mate).care(care).mateCareStatus(MateCareStatus.IN_PROGRESS).build();
+        mateCareHistoryRepository.save(mateCareHistory);
         careRepository.save(care);
         return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build();
     }
 
-    public List<AppliedCaringDto> viewApplyList(String careStatus,CustomUserDetails customUserDetails) {
+    public CommonResponseDto finishCaring(Long careCid,CustomMateDetails customMateDetails) {
+        CareEntity care = careRepository.findById(careCid).orElseThrow();
+        care.setCareStatus(CareStatus.HELP_DONE);
+        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care,customMateDetails.getMate());
+        mateCareHistory.setMateCareStatus(MateCareStatus.HELP_DONE);
+        careRepository.save(care);
+        mateCareHistoryRepository.save(mateCareHistory);
+        return CommonResponseDto.builder().code(200).success(true).message("도움이 완료되었습니다!").build();
+    }
+
+
+    public CommonResponseDto cancelCaring(Long careCid,CustomMateDetails customMateDetails) {
+        CareEntity care = careRepository.findById(careCid).orElseThrow();
+        care.setCareStatus(CareStatus.WAITING);
+        care.setMate(null);
+        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care,customMateDetails.getMate());
+        mateCareHistory.setMateCareStatus(MateCareStatus.CANCEL);
+        careRepository.save(care);
+        mateCareHistoryRepository.save(mateCareHistory);
+        return CommonResponseDto.builder().code(200).success(true)
+                .message("도움을 성공적으로 취소했습니다!").build();
+    };
+
+    public List<CaringDto> viewApplyList(String careStatus, CustomUserDetails customUserDetails) {
 //        try {
+        // 진행중,완료,취소 상태 뭘 누르냐에 따라 그 상태에 해당하는 내역만 보여주도록
             MateEntity mate = mateRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow();
             CareStatus status = CareStatus.valueOf(careStatus);
             List<CareEntity> careList = careRepository.findAllByMateAndCareStatus(mate, status);
@@ -61,14 +98,9 @@ public class MateService {
 //        }
     }
 
-    public CommonResponseDto finishCaring(Long careCid) {
-        CareEntity care = careRepository.findById(careCid).orElseThrow();
-        care.setCareStatus(CareStatus.HELP_DONE);
-        careRepository.save(care);
-        return CommonResponseDto.builder().code(200).success(true).message("도움이 완료되었습니다!").build();
-    }
 
-    public List<AppliedCaringDto> viewAllApplyList() {
+    // 신규요청 내역 조회하기(대기중인 도움들 전체 조회)
+    public List<CaringDto> viewAllApplyList() {
         List<CareEntity> careList = careRepository.findAllByCareStatus(CareStatus.WAITING);
         return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
     }
@@ -116,4 +148,31 @@ public class MateService {
             .phoneNumber(mate.getPhoneNumber())
             .build();
   }
+
+    public CaringDetailsDto viewCareDetail(Long careCid, CustomUserDetails customUserDetails) {
+        CareEntity care = careRepository.findById(careCid).orElseThrow();
+        return CaringDetailsDto.builder().date(care.getCareDate()).startTime(care.getCareDateTime())
+                .finishTime(care.getRequiredTime()).arrivalLoc(care.getArrivalLoc())
+                .gender(care.getGender()).cost(care.getCost()).build();
+    }
+
+    public MainPageDto countWaitingCare() {
+        int count = careRepository.countByCareStatus(CareStatus.WAITING);
+        return new MainPageDto(count);
+    }
+
+    public MyPageDto countCareStatus(CustomMateDetails customMateDetails) {
+        MateEntity mate = customMateDetails.getMate();
+        int waitingCount = careRepository.countByCareStatus(CareStatus.WAITING);
+        int inProgressCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.IN_PROGRESS,mate);
+        int finishCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.HELP_DONE,mate);
+        int cancelCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.CANCEL,mate);
+        MateRatingEntity mateRatingEntity = ratingRepository.findByMate(mate).orElseThrow();
+        double mateRating = mateRatingEntity.getTotalRating()/mateRatingEntity.getRatingCount();
+        return MyPageDto.builder().waitingCount(waitingCount).
+                inProgressCount(inProgressCount).finishCount(finishCount)
+                .cancelCount(cancelCount).mateRating(mateRating).build();
+    }
 }
+
+

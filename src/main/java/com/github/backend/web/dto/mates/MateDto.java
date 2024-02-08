@@ -17,4 +17,5 @@ public class MateDto {
     private Gender mateGender;
     private String mateName;        // 메이트 본명 엔티티에 필드 생기면 주석 해제
     private String registrationNum; // 주민등록번호 엔티티에 생기면 주석 해제
+
 }
