@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -43,8 +44,8 @@ public class MateService {
     private final RatingRepository ratingRepository;
     private final SendMessageService sendMessageService;
 
-    public CommonResponseDto applyCaring(Long careId, CustomUserDetails customUserDetails) {
-        Long mateId = customUserDetails.getUser().getUserCid();
+    public CommonResponseDto applyCaring(Long careId, CustomMateDetails customMateDetails) {
+        Long mateId = customMateDetails.getMate().getMateCid();
         CareEntity care = careRepository.findById(careId).orElseThrow();
         MateEntity mate = mateRepository.findById(mateId).orElseThrow();
         // 만약 동일한 날짜 같은 시간대에 이미 신청한 도움이 있다면 신청불가능하게끔하기
@@ -97,8 +98,8 @@ public class MateService {
 
     ;
 
-    public List<CaringDto> viewApplyList(String careStatus, CustomUserDetails customUserDetails) {
-        MateEntity mate = mateRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow();
+    public List<CaringDto> viewApplyList(String careStatus,CustomMateDetails customMateDetails) {
+        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow();
         CareStatus status = CareStatus.valueOf(careStatus);
         List<CareEntity> careList = careRepository.findAllByMateAndCareStatus(mate, status);
         return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
@@ -118,7 +119,7 @@ public class MateService {
             throw new CommonException("아이디가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE);
         }
 
-        MateEntity mate = mateRepository.findById(requestUpdateDto.getCid()).get();
+        MateEntity mate = mateRepository.findById(requestUpdateDto.getCid()).orElseThrow();
         if (requestUpdateDto.getPassword() != null) {
             requestUpdateDto.setPassword(passwordEncoder.encode(requestUpdateDto.getPassword()));
             mate.setEmail(requestUpdateDto.getEmail());
@@ -144,8 +145,8 @@ public class MateService {
                 .build();
     }
 
-    public ResponseMyInfoDto findByMate(CustomMateDetails customUserDetails) {
-        MateEntity mate = mateRepository.findById(customUserDetails.getMate().getMateCid()).orElseThrow(() -> new NotFoundException("존재하지 않는 메이트입니다."));
+    public ResponseMyInfoDto findByMate(CustomMateDetails customMateDetails) {
+        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow(() -> new NotFoundException("존재하지 않는 메이트입니다."));
         return ResponseMyInfoDto.builder()
                 .cid(mate.getMateCid())
                 .name(mate.getName())
@@ -155,11 +156,12 @@ public class MateService {
                 .build();
     }
 
-    public CaringDetailsDto viewCareDetail(Long careCid, CustomUserDetails customUserDetails) {
+    public CaringDetailsDto viewCareDetail(Long careCid) {
         CareEntity care = careRepository.findById(careCid).orElseThrow();
         return CaringDetailsDto.builder().date(care.getCareDate()).startTime(care.getCareDateTime())
                 .finishTime(care.getRequiredTime()).arrivalLoc(care.getArrivalLoc())
-                .gender(care.getGender()).cost(care.getCost()).build();
+                .gender(care.getGender()).cost(care.getCost()).careCid(careCid)
+                .content(care.getContent()).userId(care.getUser().getUserId()).build();
     }
 
     public MainPageDto countWaitingCare() {
@@ -173,8 +175,10 @@ public class MateService {
         int inProgressCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.IN_PROGRESS, mate);
         int finishCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.HELP_DONE, mate);
         int cancelCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.CANCEL, mate);
-        MateRatingEntity mateRatingEntity = ratingRepository.findByMate(mate).orElseThrow();
-        double mateRating = mateRatingEntity.getTotalRating() / mateRatingEntity.getRatingCount();
+        Optional<MateRatingEntity> mateRatingOptional = ratingRepository.findByMate(mate);
+        double mateRating = mateRatingOptional.map(mateRatingEntity ->
+                        mateRatingEntity.getTotalRating() / (double) mateRatingEntity.getRatingCount())
+                .orElse(0.0); //
         return MyPageDto.builder().waitingCount(waitingCount).
                 inProgressCount(inProgressCount).finishCount(finishCount)
                 .cancelCount(cancelCount).mateRating(mateRating).build();

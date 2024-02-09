@@ -52,9 +52,9 @@ public class MateController {
     @Operation(summary = "도움 지원하기", description = "진행중인 도움 모집건에 지원한다.")
     @PostMapping("/{careCid}")
     public CommonResponseDto applyCaring(@PathVariable Long careCid,
-                                         @AuthenticationPrincipal CustomUserDetails customUserDetails){
+                                         @AuthenticationPrincipal CustomMateDetails customMateDetails){
         log.info("[GET] 메이트 로그인 후 메인화면 조회 요청 들어왔습니다");
-        return mateService.applyCaring(careCid,customUserDetails);
+        return mateService.applyCaring(careCid,customMateDetails);
     }
 
     @Operation(summary = "도움 완료하기", description = "도움을 끝내고 도움 완료한다")
@@ -84,9 +84,9 @@ public class MateController {
     @GetMapping("/CareHistory")
     public ResponseEntity<List<CaringDto>> viewApplyList(
             @RequestParam String careStatus,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
+            @AuthenticationPrincipal CustomMateDetails customMateDetails
     ){
-        List<CaringDto> caringList = mateService.viewApplyList(careStatus,customUserDetails);
+        List<CaringDto> caringList = mateService.viewApplyList(careStatus,customMateDetails);
         return ResponseEntity.ok().body(caringList);
     }
 
@@ -104,9 +104,9 @@ public class MateController {
     @GetMapping("/detailCare/{careCid}")
     public ResponseEntity<CaringDetailsDto> viewDetailCareList(
             @PathVariable Long careCid,
-            @AuthenticationPrincipal CustomUserDetails customUserDetails
+            @AuthenticationPrincipal CustomMateDetails customMateDetails
     ){
-        CaringDetailsDto careDetail = mateService.viewCareDetail(careCid,customUserDetails);
+        CaringDetailsDto careDetail = mateService.viewCareDetail(careCid);
         return ResponseEntity.ok().body(careDetail);
     }
 
