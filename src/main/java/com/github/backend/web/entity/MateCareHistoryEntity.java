@@ -30,7 +30,7 @@ public class MateCareHistoryEntity {
     private MateEntity mate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "care_cid", referencedColumnName = "mate_cid")
+    @JoinColumn(name = "care_cid", referencedColumnName = "care_cid")
     private CareEntity care;
 
 
