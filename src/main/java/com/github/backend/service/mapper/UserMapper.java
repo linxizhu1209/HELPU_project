@@ -1,16 +1,17 @@
 package com.github.backend.service.mapper;
-import com.github.backend.web.dto.RegisteredUser;
+import com.github.backend.web.dto.UserDto;
 import com.github.backend.web.entity.MateEntity;
 import com.github.backend.web.entity.UserEntity;
+import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
+@Mapper
 public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    @Mapping(target="name",source="name") // userEntity에 본명추가시 주석 해제
-    @Mapping(target="phone",source="phoneNumber")
-    @Mapping(target="email",source="email")
+    @Mapping(target="userName",source="name")
+    @Mapping(target="userId",source = "userId")
     @Mapping(target="userGender",source="gender")
-    RegisteredUser userEntityToDTO(UserEntity userEntity);
+    UserDto userEntityToDTO(UserEntity userEntity);
 }

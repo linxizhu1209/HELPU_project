@@ -8,10 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class RegisteredUser {
-
+public class UserDto {
+    private String userId;
     private String userName;
-    private String phone;
-    private String email;
     private Gender userGender;
 }

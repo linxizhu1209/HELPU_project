@@ -48,7 +48,7 @@ public class SecurityConfig {
 
     // 관리자 권한이 필요한 api
     private final String[] ADMIN_URL = {
-            "/api/admin/**"
+            "/api/master/**"
     };
 
     // 사용자 페이지 api
