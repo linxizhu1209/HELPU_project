@@ -186,17 +186,31 @@ public class MateService {
 
     public CommonResponseDto completePayment(Long careCid, boolean isCompletedPayment) {
 
-        CareEntity care = careRepository.findById(careCid).orElseThrow();
-        if (isCompletedPayment) {
-            care.setCareStatus(CareStatus.COMPLETE_PAYMENT);
-        } else {
-            care.setCareStatus(CareStatus.INCOMPLETE_PAYMENT);
+      CareEntity care = careRepository.findById(careCid).orElseThrow();
+      if (isCompletedPayment) {
+        care.setCareStatus(CareStatus.COMPLETE_PAYMENT);
+      } else {
+        care.setCareStatus(CareStatus.INCOMPLETE_PAYMENT);
 //        String messageContent = care.getContent + "의 결제가 완료되지않아 메이트가 기다리고있어요ㅠㅠ 입금을 완료해주세요!";
 //        String phoneNum = care.getUser().getPhoneNumber();
 //        sendMessageService.sendMessage(phoneNum,messageContent);
-        }
-        careRepository.save(care);
-        return CommonResponseDto.builder().code(200).success(true).message("결제 상태가 성공적으로 변경되었습니다!").build();
+      }
+      careRepository.save(care);
+      return CommonResponseDto.builder().code(200).success(true).message("결제 상태가 성공적으로 변경되었습니다!").build();
+    }
+
+    /*
+    * 현재 적용중인 케어시스템 중에서 메이트 조회
+    *
+    */
+    public Long findByCaringMateCid(Long mateCid) {
+      CareEntity checkMates = careRepository.findByMateCid(mateCid).orElseThrow(() -> new CommonException("해당 케어서비스의 메이트가 아닙니다."));
+      return checkMates.getCareCid();
+    }
+
+
+    public MateEntity findByCid(long mateCid) {
+        return mateRepository.findById(mateCid).orElseThrow(() -> new CommonException("메이트가 존재하지 않습니다."));
     }
 }
 
