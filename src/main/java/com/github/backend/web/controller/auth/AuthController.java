@@ -8,13 +8,18 @@ import com.github.backend.web.dto.users.*;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -44,43 +49,25 @@ public class AuthController {
 
     @Operation(summary = "로그인", description = "사용자가 로그인을 한다.")
     @PostMapping("/login")
-    public ResponseEntity<TokenDto> userLogin(@RequestBody RequestLoginDto requestLoginDto, HttpServletResponse httpServletResponse) {
+    public ResponseEntity<?> userLogin(@RequestBody RequestLoginDto requestLoginDto, HttpServletResponse httpServletResponse) {
       log.info("login controller 진입");
-      TokenDto tokenDTO = authService.login(requestLoginDto);
-      ResponseCookie responseCookie = ResponseCookie
-              .from("refresh_token", tokenDTO.getRefreshToken())
-              .httpOnly(true)
-              .secure(true)
-              .sameSite("None")
-              .maxAge(tokenDTO.getDuration())
-              .path("/")
-              .build();
-
-  //      httpServletResponse.setHeader("Authorization", tokenDTO.getAccessToken());
-      httpServletResponse.setHeader("Set-Cookie", responseCookie.toString());
-
-      log.info("access token : {}", tokenDTO.getAccessToken());
-      log.info("refresh token: {}", tokenDTO.getRefreshToken());
-      return ResponseEntity.ok(tokenDTO);
+      return authService.login(requestLoginDto, httpServletResponse);
     }
 
-    @Operation(summary = "토큰 갱신")
-    @PostMapping("/refreshToken")
-    public ResponseEntity<TokenDto> refreshToken(@RequestBody RequestTokenDto tokenDTO, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-      TokenDto tokenDto = authService.refresh(tokenDTO, customUserDetails);
-      return ResponseEntity.ok(tokenDto);
+    @Operation(summary = "로그아웃")
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response){
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      if(authentication != null){
+        new SecurityContextLogoutHandler().logout(request, response, authentication);
+      }
+      String token = authentication.getCredentials().toString();
+      authService.logout(token);
+      return ResponseEntity.ok("로그아웃 되었습니다");
     }
-
-    @Operation(summary = "해당 아이디 유저 로그인 정보")
-    @GetMapping("/{userId}")
-    public ResponseEntity<ResponseUserDto> getUserInfo(@PathVariable String userId) {
-        return ResponseEntity.ok(userService.getLoginUserInfo(userId));
+    @Operation(summary = "리프레쉬 토큰 발급")
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestHeader("refresh_token") String token){
+      return authService.refresh(token);
     }
-
-    @Operation(summary = "현재 로그인 정보")
-    @GetMapping("/myInfo")
-    public ResponseEntity<ResponseUserDto> getUserInfo() {
-      return ResponseEntity.ok(userService.getLoginUserInfo());
-    }
-
 }
