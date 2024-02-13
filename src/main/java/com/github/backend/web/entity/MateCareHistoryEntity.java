@@ -23,6 +23,7 @@ public class MateCareHistoryEntity {
 
     @Column
     @Schema(description = "메이트의 도움 상태",example = "취소")
+    @Enumerated(EnumType.STRING)
     private MateCareStatus mateCareStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
