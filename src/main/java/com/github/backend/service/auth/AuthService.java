@@ -3,7 +3,6 @@ package com.github.backend.service.auth;
 import com.github.backend.config.security.JwtTokenProvider;
 import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.MateRepository;
-import com.github.backend.repository.RefreshTokenRepository;
 import com.github.backend.repository.RolesRepository;
 
 import com.github.backend.service.exception.NotFoundException;
@@ -11,101 +10,124 @@ import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.mates.RequestSaveMateDto;
 import com.github.backend.web.dto.users.*;
 import com.github.backend.web.entity.MateEntity;
-import com.github.backend.web.entity.RefreshToken;
 import com.github.backend.web.entity.RolesEntity;
 import com.github.backend.web.entity.UserEntity;
-import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.Gender;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
 
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final RedisTemplate<String ,String> redisTemplate;
     private final AuthRepository authRepository;
     private final MateRepository mateRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final RolesRepository rolesRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
-  private final String BEARER_TYPE = "Bearer";
-  private final Long ACCESS_TOKEN_EXPIRED_TIME = 60 * 60000 * 1000L;
+    private final String BEARER_TYPE = "Bearer";
     /**
      * UsernamePasswordAuthenticationToken을 통한 Spring Security인증 진행
      * 이후 tokenService에 userId값을 전달하여 토큰 생성
      * @param requestDTO
-     * @return TokenDTO
+     * @return response
      */
 
     @Transactional
-    public TokenDto login(RequestLoginDto requestDTO) {
+    public ResponseEntity<?> login(RequestLoginDto requestDTO, HttpServletResponse httpServletResponse) {
         UserEntity users = authRepository.findByUserId(requestDTO.getUserId()).isPresent() == false ? null : authRepository.findByUserId(requestDTO.getUserId()).get();
         MateEntity mates = mateRepository.findByMateId(requestDTO.getUserId()).isPresent() == false ? null : mateRepository.findByMateId(requestDTO.getUserId()).get();
         if(users == null && mates == null){
           throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
         }
+        try{
+          // 1. ID(email)/PW 기반으로 AuthenticationToken 생성
+          UsernamePasswordAuthenticationToken authenticationToken = requestDTO.toAuthentication();
+          // 2. 실제 검증 로직
+          SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-        // 1. ID(email)/PW 기반으로 AuthenticationToken 생성
-        UsernamePasswordAuthenticationToken authenticationToken = requestDTO.toAuthentication();
-        // 2. 실제 검증 로직(사용자 비밀번호 체크)
-        // authenticate 메서드가 실행이 될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드가 실행됨
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+          // 3. 로그아웃 토큰이 있는 경우 삭제
+          if (redisTemplate.opsForValue().get("logout: " + requestDTO.getUserId()) != null) {
+            redisTemplate.delete("logout: " + requestDTO.getUserId());
+          }
 
-        String accessToken = "";
-        String refreshToken = "";
+          String accessToken = "";
+          String refreshToken = "";
 
+          // 4. 유저, 메이트 인증 정보를 기반으로 JWT토큰 생성
+          if(users != null){
+            String isDeletedUser = users.getIsDeleted();
+            if(isDeletedUser != null && isDeletedUser.equals("deleted"))
+              throw new NotFoundException("해당 사용자는 탈퇴한 계정입니다.");
 
-        // 3. 인증 정보를 기반으로 JWT토큰 생성
-        if(users != null){
-          String isDeletedUser = users.getIsDeleted();
-          if(isDeletedUser != null && isDeletedUser.equals("deleted"))
-            throw new NotFoundException("해당 사용자는 탈퇴한 계정입니다.");
+            if(!passwordEncoder.matches(requestDTO.getPassword(), users.getPassword()))
+              throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
 
-          if(!passwordEncoder.matches(requestDTO.getPassword(), users.getPassword()))
-            throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
+            accessToken = jwtTokenProvider.createAccessToken(1, users.getUserId());
+            refreshToken = jwtTokenProvider.createRefreshToken(1, users.getUserId());
 
-          accessToken = jwtTokenProvider.createAccessToken(authentication, users.getRoles().getRolesName());
-          refreshToken = jwtTokenProvider.createRefreshToken(authentication, users.getRoles().getRolesName());
+          }else if(mates != null){
+            String isDeletedMate = mates.getIsDeleted();
+            if(isDeletedMate != null && isDeletedMate.equals("deleted"))
+              throw new NotFoundException("해당 메이트는 탈퇴한 계정입니다.");
 
-        }else if(mates != null){
-          String isDeletedMate = mates.getIsDeleted();
-          if(isDeletedMate != null && isDeletedMate.equals("deleted"))
-            throw new NotFoundException("해당 메이트는 탈퇴한 계정입니다.");
+            if(!passwordEncoder.matches(requestDTO.getPassword(), mates.getPassword()))
+              throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
 
-          if(!passwordEncoder.matches(requestDTO.getPassword(), mates.getPassword()))
-            throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
+            accessToken = jwtTokenProvider.createAccessToken(2, mates.getMateId());
+            refreshToken = jwtTokenProvider.createRefreshToken(2, mates.getMateId());
+          }
 
-          accessToken = jwtTokenProvider.createAccessToken(authentication, mates.getRoles().getRolesName());
-          refreshToken = jwtTokenProvider.createRefreshToken(authentication, mates.getRoles().getRolesName());
+          redisTemplate.opsForValue().set(requestDTO.getUserId(), accessToken, Duration.ofSeconds(1800));
+          redisTemplate.opsForValue().set("RF: " + requestDTO.getUserId(), refreshToken, Duration.ofHours(1L));
+
+          httpServletResponse.addCookie(new Cookie("refresh_token", refreshToken));
+
+          Map<String, String> response = new HashMap<>();
+          response.put("http_status", HttpStatus.OK.toString());
+          response.put("message", "로그인 되었습니다");
+          response.put("token_type", BEARER_TYPE);
+          response.put("access_token", accessToken);
+          response.put("refresh_token", refreshToken);
+          return ResponseEntity.ok(response);
+        }catch (BadCredentialsException e) {
+          e.printStackTrace();
+          Map<String, String> response = new HashMap<>();
+          response.put("message", "잘못된 자격 증명입니다");
+          response.put("http_status", HttpStatus.UNAUTHORIZED.toString());
+          return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        } catch (UsernameNotFoundException e) {
+          e.printStackTrace();
+          Map<String, String> response = new HashMap<>();
+          response.put("message", "가입되지 않은 회원입니다");
+          response.put("http_status", HttpStatus.NOT_FOUND.toString());
+          return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        } catch (Exception e) {
+          e.printStackTrace();
+          Map<String, String> response = new HashMap<>();
+          response.put("message", "알 수 없는 오류가 발생했습니다");
+          response.put("http_status", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+          return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
         }
-
-        // 4. RefreshToken 저장
-        RefreshToken refreshTokenResult = RefreshToken.builder()
-                .key(authentication.getName())
-                .value(refreshToken)
-                .build();
-        refreshTokenRepository.save(refreshTokenResult);
-
-        TokenDto tokenDto = TokenDto.builder()
-                .tokenType(BEARER_TYPE)
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .duration(Duration.ofMillis(ACCESS_TOKEN_EXPIRED_TIME))
-                .build();
-        // 5. 토큰 발급
-        return tokenDto;
     }
 
     @Transactional
@@ -144,6 +166,7 @@ public class AuthService {
               .build();
     }
 
+    @Transactional
     public CommonResponseDto mateSignup(RequestSaveMateDto requestMateDto) {
         if (mateRepository.existsByMateId(requestMateDto.getMateId())) {
           throw new RuntimeException("이미 존재하는 아이디입니다.");
@@ -181,49 +204,43 @@ public class AuthService {
                 .build();
     }
 
-    /**
-     * 토큰 재발급
-     */
+    // 로그아웃
     @Transactional
-    public TokenDto refresh(RequestTokenDto requestTokenDto, CustomUserDetails customUserDetails) {
-        // 1. Refresh Token 검증 (validateToken() : 토큰 검증)
-        if(!jwtTokenProvider.validationToken(requestTokenDto.getRefreshToken())) {
-          throw new RuntimeException("Refresh Token이 유효하지 않습니다.");
-        }
-
-        if(customUserDetails.getUser() == null){
-          throw new RuntimeException("접속시간이 만료되었습니다.");
-        }
-
-        // 2. Access Token에서 Studio ID 가져오기
-        Authentication authentication = jwtTokenProvider.getAuthentication(requestTokenDto.getAccessToken());
-
-        // 3. 저장소에서 Studio ID를 기반으로 Refresh Token값 가져오기
-        RefreshToken findRefreshToken = refreshTokenRepository.findByKey(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("로그아웃 된 사용자입니다."));
-
-        // 4. Refresh Token 일치 여부
-        if (!findRefreshToken.getValue().equals(requestTokenDto.getRefreshToken())) {
-          throw new RuntimeException("토큰의 유저 정보가 일치하지 않습니다.");
-        }
-
-        // 5. 새로운 토큰 생성
-        String accessToken = jwtTokenProvider.createAccessToken(authentication, customUserDetails.getUser().getRoles().getRolesName());
-        String refreshToken = jwtTokenProvider.createRefreshToken(authentication, customUserDetails.getUser().getRoles().getRolesName());
-
-        // 6. 저장소 정보 업데이트
-        RefreshToken newRefreshToken = findRefreshToken.updateValue(refreshToken);
-        refreshTokenRepository.save(newRefreshToken);
-
-        TokenDto tokenDto = TokenDto.builder().accessToken(accessToken).refreshToken(refreshToken).build();
-        // 토큰 발급
-        return tokenDto;
+    public void logout(String token){
+      redisTemplate.opsForValue().set("logout : "+ jwtTokenProvider.getIdByToken(token), "logout", Duration.ofSeconds(1800));
+      redisTemplate.delete(jwtTokenProvider.getIdByToken(token));
+      redisTemplate.delete("RF: " + jwtTokenProvider.getIdByToken(token));
     }
 
-    public String userIdCheck(String userEmail) {
-        UserEntity users = authRepository.findByUserId(userEmail).orElseThrow(() -> new NotFoundException("사용불가한 이메일 입니다."));
-        return "사용 가능한 이메일입니다.";
+    // refresh token 재발급
+    @Transactional
+    public ResponseEntity<?> refresh(String token){
+      String id = jwtTokenProvider.getIdByToken(token);
+      String accessToken = checkByToken(id);
+      if(redisTemplate.opsForValue().get("RF: " + id) != null){
+        redisTemplate.opsForValue().set(id, accessToken, Duration.ofSeconds(6000));
+        Map<String, String> response = new HashMap<>();
+        response.put("access_token", accessToken);
+        response.put("http_status", HttpStatus.CREATED.toString());
+        return ResponseEntity.ok(response);
+      }
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("존재하지 않는 유저입니다.");
     }
 
+    // --------------------------------함수 정의하는 곳--------------------------------
+    /*
+    * 토큰으로 user 를 체크
+    */
+    public String checkByToken(String id){
+      UserEntity users = authRepository.findByUserId(id).isPresent() == false ? null : authRepository.findByUserId(id).get();
+      MateEntity mates = mateRepository.findByMateId(id).isPresent() == false ? null : mateRepository.findByMateId(id).get();
+      String accessToken = "";
+      if(users != null){
+        accessToken = jwtTokenProvider.createAccessToken(1, users.getUserId());
+      }else{
+        accessToken = jwtTokenProvider.createAccessToken(2, mates.getMateId());
+      }
+      return accessToken;
+    }
 
 }

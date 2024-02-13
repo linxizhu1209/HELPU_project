@@ -44,20 +44,6 @@ public class UserService implements UserDetailsService {
       return null;
     }
 
-    @Transactional(readOnly = true)
-    public ResponseUserDto getLoginUserInfo(){
-      return authRepository.findByUserId(SecurityUtil.getCurrentUserId())
-              .map(ResponseUserDto::responseUserDto)
-              .orElseThrow(() -> new NotFoundException("로그인 유저 정보가 없습니다."));
-    }
-
-    @Transactional(readOnly = true)
-    public ResponseUserDto getLoginUserInfo(String userId){
-      return authRepository.findByUserId(userId)
-              .map(ResponseUserDto::responseUserDto)
-              .orElseThrow(() -> new NotFoundException("유저 정보가 없습니다."));
-    }
-
     // 현재 접속중인 사용자의 유저정보 페이지 로직
     public ResponseMyInfoDto findByUser(CustomUserDetails customUserDetails) {
         UserEntity user = authRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow(() -> new CommonException("userId: " + customUserDetails.getUser() + "를 데이터베이스에서 찾을 수 없습니다."));
