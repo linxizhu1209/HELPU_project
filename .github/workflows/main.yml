@@ -11,9 +11,6 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
   build:
 
     runs-on: ubuntu-latest # 스크립트를 작동할 OS
-    permissions:
-      contents: read
-      packages: write
 
     steps:
     - uses: actions/checkout@v3 # 재사용 가능한 워크플로 파일의 위치 및 버전
@@ -30,12 +27,28 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
 
     # 프로젝트 build
     - name: Build with Gradle
-      run: ./gradlew clean build -x test
+      run: ./gradlew clean build
       shell: bash
+
+    # 디렉토리 생성
+    - name: Make Directory
+      run: mkdir -p deploy
+
+    # Jar 파일 복사
+    - name: Copy Jar
+      run: cp ./build/libs/*.jar ./deploy
+
+    # appspec.yml 파일 복사
+    - name: Copy appspec.yml
+      run: cp appspec.yml ./deploy
+
+    # script files 복사
+    - name: Copy script
+      run: cp ./scripts/*.sh ./deploy
     
     # 프로젝트 압축
     - name: Make zip file
-      run: zip -r ./care-service-deploy.zip .
+      run: zip -r ./$ZIP_FILE_NAME.zip ./deploy
       shell: bash
 
     # AWS 권한 확인
