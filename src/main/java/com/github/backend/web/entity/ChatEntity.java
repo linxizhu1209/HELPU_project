@@ -2,10 +2,7 @@ package com.github.backend.web.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "chat_table")
-public class ChatEntity {
+public class ChatEntity extends BaseEntity{
     @Id
     @Column(name = "chat_cid")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,15 +22,16 @@ public class ChatEntity {
     @Schema(description = "채팅내용", example = "응?")
     private String content;
 
-    @Column(name = "created_at")
-    @Schema(description = "채팅 보낸 시간")
-    private LocalDateTime createdAt;
+    @ManyToOne
+    @JoinColumn(name="chat_room_cid")
+    private ChatRoomEntity chatRoom;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_cid", referencedColumnName = "user_cid")
-    private UserEntity user;
+    private String sender;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mate_cid", referencedColumnName = "mate_cid")
-    private MateEntity mate;
+    @Builder
+    public ChatEntity(String content, ChatRoomEntity chatRoom, String sender) {
+        this.content = content;
+        this.chatRoom = chatRoom;
+        this.sender = sender;
+    }
 }
