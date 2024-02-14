@@ -1,13 +1,11 @@
 name: SpringBoot CI with Gradle # Workflow 이름
 
 on: # Workflow를 자동으로 트리거 하기 위한 이벤트
-  release:
-    types: [push] # push를 하면 자동으로 실행
   push:
     branches: [dev] # dev 브랜치에서 동작
 
 env:
-  S3_BUCKET_NAME: care-service-bucket
+  ZIP_FILE_NAME: care-service-deploy
 
 jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
   build:
@@ -50,12 +48,12 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
 
     # 압축한 프로젝트를 S3로 전송
     - name: Upload to S3
-      run: aws s3 cp --region ${{ secrets.S3_REGION }} ./care-service-deploy.zip s3://$S3_BUCKET_NAME/care-service-deploy.zip
+      run: aws s3 cp --region ${{ secrets.S3_REGION }} ./$ZIP_FILE_NAME.zip s3://${{ secrets.S3_BUCKET_NAME }}
     
     # Deploy
     - name: Deploy
       env:
-        S3_BUCKET_NAME: $S3_BUCKET_NAME
+        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
         JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.9-9/x64
         JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.9-9/x64
         AWS_DEFAULT_REGION: ${{ secrets.S3_REGION }}
@@ -67,5 +65,5 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
         --application-name ${{ secrets.CODEDEPLOY_APPLICATION_NAME }} \
         --deployment-group-name ${{ secrets.CODEDEPLOY_GROUP_NAME }} \
         --file-exists-behavior OVERWRITE \
-        --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=care-service-deploy.zip \
+        --s3-location bucket=${{ secrets.S3_BUCKET_NAME }},bundleType=zip,key=care-service-deploy.zip \
          --region ${{ secrets.S3_REGION }}
