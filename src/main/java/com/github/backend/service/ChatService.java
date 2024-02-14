@@ -3,11 +3,10 @@ package com.github.backend.service;
 
 import com.github.backend.repository.ChatRepository;
 import com.github.backend.repository.ChatRoomRepository;
-import com.github.backend.web.dto.ChatMessageRequestDto;
+import com.github.backend.web.dto.chatDto.ChatMessageRequestDto;
 
 import com.github.backend.web.entity.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

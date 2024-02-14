@@ -27,4 +27,7 @@ public interface ServiceApplyRepository extends JpaRepository<CareEntity, Long >
           "INNER JOIN c.mate m " +
           "WHERE m.mateCid = :mateCid")
     Optional<CareEntity> findByMateCid(Long mateCid);
+
+
+    CareEntity findCareEntityByContent(String content);
 }

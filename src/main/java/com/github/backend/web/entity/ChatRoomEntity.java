@@ -1,11 +1,9 @@
 package com.github.backend.web.entity;
 
-import com.github.backend.web.dto.ChatRoomRequestDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -21,6 +19,10 @@ public class ChatRoomEntity extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(description = "채팅 고유 아이디")
     private Long chatRoomCid;
+
+    @Column(name = "chat_room_name")
+    @Schema(description = "채팅방 이름")
+    private String chatRoomName;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE)
     private List<ChatEntity> chatMessageList;

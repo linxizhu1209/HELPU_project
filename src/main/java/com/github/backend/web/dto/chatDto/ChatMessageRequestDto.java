@@ -1,4 +1,4 @@
-package com.github.backend.web.dto;
+package com.github.backend.web.dto.chatDto;
 
 import com.github.backend.web.entity.ChatEntity;
 import com.github.backend.web.entity.ChatRoomEntity;

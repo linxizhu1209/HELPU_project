@@ -7,6 +7,7 @@ import com.github.backend.web.dto.apply.ServiceApplyDto;
 import com.github.backend.web.dto.apply.UserDto;
 import com.github.backend.web.dto.apply.UserMyPageDto;
 import com.github.backend.web.dto.apply.UserProceedingDto;
+import com.github.backend.web.dto.chatDto.CreatedChatRoomDto;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +26,10 @@ import java.util.List;
 public class ServiceApplyController {
     private final ServiceApplyService serviceApplyService;
     @PostMapping("/service-apply")
-    public ResponseEntity<CommonResponseDto> serviceApply(@RequestBody ServiceApplyDto serviceApplyDto,
+    public ResponseEntity<CreatedChatRoomDto> serviceApply(@RequestBody ServiceApplyDto serviceApplyDto,
                                                           @AuthenticationPrincipal CustomUserDetails customUserDetails){
         log.debug("serviceApplyDto: {}", serviceApplyDto.toString());
-        CommonResponseDto registerService = serviceApplyService.applyService(serviceApplyDto, customUserDetails);
+        CreatedChatRoomDto registerService = serviceApplyService.applyService(serviceApplyDto, customUserDetails);
 
         return ResponseEntity.ok().body(registerService);
     }
