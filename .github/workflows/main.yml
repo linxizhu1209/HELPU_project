@@ -1,21 +1,16 @@
 name: SpringBoot CI with Gradle # Workflow 이름
 
 on: # Workflow를 자동으로 트리거 하기 위한 이벤트
-  release:
-    types: [push] # push를 하면 자동으로 실행
   push:
     branches: [dev] # dev 브랜치에서 동작
 
 env:
-  S3_BUCKET_NAME: care-service-bucket
+  ZIP_FILE_NAME: care-service-deploy
 
 jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
   build:
 
     runs-on: ubuntu-latest # 스크립트를 작동할 OS
-    permissions:
-      contents: read
-      packages: write
 
     steps:
     - uses: actions/checkout@v3 # 재사용 가능한 워크플로 파일의 위치 및 버전
@@ -32,12 +27,28 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
 
     # 프로젝트 build
     - name: Build with Gradle
-      run: ./gradlew clean build -x test
+      run: ./gradlew clean build
       shell: bash
+
+    # 디렉토리 생성
+    - name: Make Directory
+      run: mkdir -p deploy
+
+    # Jar 파일 복사
+    - name: Copy Jar
+      run: cp ./build/libs/*.jar ./deploy
+
+    # appspec.yml 파일 복사
+    - name: Copy appspec.yml
+      run: cp appspec.yml ./deploy
+
+    # script files 복사
+    - name: Copy script
+      run: cp ./scripts/*.sh ./deploy
     
     # 프로젝트 압축
     - name: Make zip file
-      run: zip -r ./care-service-deploy.zip .
+      run: zip -r ./$ZIP_FILE_NAME.zip ./deploy
       shell: bash
 
     # AWS 권한 확인
@@ -50,12 +61,12 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
 
     # 압축한 프로젝트를 S3로 전송
     - name: Upload to S3
-      run: aws s3 cp --region ${{ secrets.S3_REGION }} ./care-service-deploy.zip s3://$S3_BUCKET_NAME/care-service-deploy.zip
+      run: aws s3 cp --region ${{ secrets.S3_REGION }} ./$ZIP_FILE_NAME.zip s3://${{ secrets.S3_BUCKET_NAME }}
     
     # Deploy
     - name: Deploy
       env:
-        S3_BUCKET_NAME: $S3_BUCKET_NAME
+        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
         JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.9-9/x64
         JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.9-9/x64
         AWS_DEFAULT_REGION: ${{ secrets.S3_REGION }}
@@ -67,5 +78,5 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
         --application-name ${{ secrets.CODEDEPLOY_APPLICATION_NAME }} \
         --deployment-group-name ${{ secrets.CODEDEPLOY_GROUP_NAME }} \
         --file-exists-behavior OVERWRITE \
-        --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=care-service-deploy.zip \
+        --s3-location bucket=${{ secrets.S3_BUCKET_NAME }},bundleType=zip,key=care-service-deploy.zip \
          --region ${{ secrets.S3_REGION }}
