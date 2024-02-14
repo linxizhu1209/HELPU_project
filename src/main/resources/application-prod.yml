@@ -1,0 +1,61 @@
+server:
+  port: 8080
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  servlet:
+    multipart:
+      max-request-size: 30MB
+      max-file-size: 30MB
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    repositories:
+      bootstrap-mode: deferred
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      repositories:
+        enabled: false
+
+  jwt:
+    secret: ${JWT_SECRET}
+  default:
+    admin_id: supercoding
+    admin_pwd: admin1234
+
+springdoc:
+  default-produces-media-type: application/json;charset=UTF-8
+  default-consumes-media-type: application/json;charset=UTF-8
+  cache:
+    disabled: true
+  packages-to-scan: com.github.backend.web.controller
+  api-docs:
+    path: /api-docs
+
+logging:
+  config: classpath:logback-spring-prod.xml
+cloud:
+  aws:
+    credentials:
+      access-key: ${CLOUD_S3_ACCESS_KEY}
+      secret-key: ${CLOUD_S3_SECRET_KEY}
+    s3:
+      bucketName: ${S3_BUCKET_NAME}
+    region:
+      static: ${S3_REGION}
+    stack:
+      auto: false
