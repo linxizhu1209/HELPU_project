@@ -14,7 +14,7 @@ import java.time.LocalTime;
 public class CaringDto {
     @Schema(description = "도움서비스 내용",example = "서울 OO병원 동행 서비스")
     private String content;
-    @Schema(description = "동행 날짜",example = "2024.2.10")
+    @Schema(description = "동행 날짜",example = "2024-2-10")
     private LocalDate date;
     @Schema(description = "동행 시작 시간",example = "09:00")
     private LocalTime startTime;

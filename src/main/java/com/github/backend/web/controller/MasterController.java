@@ -2,11 +2,11 @@ package com.github.backend.web.controller;
 
 import com.github.backend.service.MasterService;
 import com.github.backend.web.dto.CommonResponseDto;
-import com.github.backend.web.dto.UnapprovedMateDto;
-import com.github.backend.web.dto.UserDetailDto;
-import com.github.backend.web.dto.UserListDto;
-import com.github.backend.web.dto.mates.MateDetailDto;
-import com.github.backend.web.dto.mates.MateDto;
+import com.github.backend.web.dto.master.UnapprovedMateDto;
+import com.github.backend.web.dto.master.UserDetailDto;
+import com.github.backend.web.dto.master.UserListDto;
+import com.github.backend.web.dto.master.MateDetailDto;
+import com.github.backend.web.dto.master.MateDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

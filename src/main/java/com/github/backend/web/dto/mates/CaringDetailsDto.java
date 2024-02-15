@@ -19,7 +19,7 @@ public class CaringDetailsDto {
 private Long careCid;
 @Schema(description = "사용자 아이디",example = "linxizhu129")
 private String userId;
-@Schema(description = "동행 날짜",example = "2024.2.10")
+@Schema(description = "동행 날짜",example = "2024-2-10")
 private LocalDate date;
 @Schema(description = "동행 시작 시간",example = "09:00")
 private LocalTime startTime;

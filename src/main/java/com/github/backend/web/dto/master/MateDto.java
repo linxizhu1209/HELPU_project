@@ -1,4 +1,4 @@
-package com.github.backend.web.dto.mates;
+package com.github.backend.web.dto.master;
 
 import com.github.backend.web.entity.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,5 +16,6 @@ public class MateDto {
     private Gender mateGender;
     @Schema(description = "메이트 본명",example = "김용용")
     private String mateName;
+    @Schema(description = "블랙리스트 여부",example = "true")
     private boolean isBlacklisted;
 }

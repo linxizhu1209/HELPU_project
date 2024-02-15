@@ -1,4 +1,4 @@
-package com.github.backend.web.dto.mates;
+package com.github.backend.web.dto.master;
 
 import com.github.backend.web.entity.enums.Gender;
 import com.github.backend.web.entity.enums.MateStatus;

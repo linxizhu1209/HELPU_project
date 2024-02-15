@@ -1,5 +1,5 @@
 package com.github.backend.service.mapper;
-import com.github.backend.web.dto.UserListDto;
+import com.github.backend.web.dto.master.UserListDto;
 import com.github.backend.web.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
