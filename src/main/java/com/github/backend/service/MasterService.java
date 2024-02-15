@@ -58,13 +58,11 @@ public class MasterService {
 
 
     public List<MateDto> findAllMateList() {
-        log.info("[GET:MASTER] 관리자의 메이트 조회 요청이 들어왔습니다.");
         List<MateEntity> mateList = mateRepository.findAll();
         return mateList.stream().map(MateMapper.INSTANCE::MateEntityToDTO).toList();
     }
 
     public MateDetailDto findMate(Long mateCid) {
-        log.info("[GET:MASTER] 관리자의 메이트 상세 조회 요청이 들어왔습니다.");
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
 //        String registrationNumber="";
 //        for(int i=0; i<=8;i++){
@@ -83,7 +81,6 @@ public class MasterService {
     }
 
     public CommonResponseDto blacklistingMate(boolean isBlacklisted, Long mateCid) {
-        log.info("[PUT:MASTER] 관리자의 사용자 블랙리스트 올리기/내리기 요청이 들어왔습니다.");
             MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
             mate.setBlacklisted(isBlacklisted);
             mateRepository.save(mate);
@@ -93,14 +90,12 @@ public class MasterService {
 
     // 사용자 부분
     public List<UserListDto> findAllUserList() {
-        log.info("[GET:MASTER] 관리자의 사용자 조회 요청이 들어왔습니다.");
         RolesEntity roles = rolesRepository.findByRolesName("ROLE_USER");
         List<UserEntity> userList = authRepository.findAllByRoles(roles);
         return userList.stream().map(UserMapper.INSTANCE::userEntityToDTO).toList();
     }
 
     public CommonResponseDto blacklistingUser(boolean isBlacklisted,Long userCid) {
-        log.info("[PUT:MASTER] 관리자의 사용자 블랙리스트 올리기/내리기 요청이 들어왔습니다.");
             UserEntity user = authRepository.findById(userCid).orElseThrow();
             user.setBlacklisted(isBlacklisted);
             authRepository.save(user);
@@ -110,7 +105,6 @@ public class MasterService {
 
 
     public UserDetailDto findUser(Long userCid) {
-        log.info("[GET:MASTER] 관리자의 사용자 상세 조회 요청이 들어왔습니다.");
         UserEntity user = authRepository.findById(userCid).orElseThrow();
         return UserDetailDto.builder()
                 .userId(user.getUserId())
