@@ -66,11 +66,11 @@ public class UserEntity extends BaseEntity{
 
     @Column(name = "is_blacklisted", length = 10)
     @Schema(description = "블랙리스트등록여부", example = "true")
-    private boolean isBlacklisted;
+    private boolean blacklisted;
 
 
     @Builder
-    public UserEntity(String userId, String password, String email, String name, String phoneNumber, String address, Gender gender, RolesEntity roles, String isDeleted){
+    public UserEntity(String userId, String password, String email, String name, String phoneNumber, String address, Gender gender, RolesEntity roles, String isDeleted,boolean isBlacklisted){
       this.userId = userId;
       this.password = password;
       this.email = email;
@@ -80,5 +80,6 @@ public class UserEntity extends BaseEntity{
       this.gender = gender;
       this.roles = roles;
       this.isDeleted = isDeleted;
+      this.blacklisted = isBlacklisted;
     }
 }

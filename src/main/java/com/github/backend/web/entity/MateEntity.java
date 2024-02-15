@@ -71,7 +71,7 @@ public class MateEntity extends BaseEntity{
 
   @Column(name = "is_blacklisted", length = 10)
   @Schema(description = "블랙리스트등록여부", example = "true")
-  private boolean isBlacklisted;
+  private boolean blacklisted;
 
 
   @Column(name = "register_status", length = 10)
@@ -86,7 +86,7 @@ public class MateEntity extends BaseEntity{
     return this;
   }
   @Builder
-  public MateEntity(String mateId, String password, String email, String name, String phoneNumber, String address, Gender gender, String registrationNum,RolesEntity roles, String isDeleted){
+  public MateEntity(String mateId, String password, String email, String name, String phoneNumber, String address, Gender gender, String registrationNum,RolesEntity roles, String isDeleted,boolean isBlacklisted){
     this.mateId = mateId;
     this.password = password;
     this.email = email;
@@ -98,5 +98,6 @@ public class MateEntity extends BaseEntity{
     this.registrationNum = registrationNum;
     this.isDeleted = isDeleted;
     this.mateStatus = MateStatus.PREPARING;
+    this.blacklisted = isBlacklisted;
   }
 }

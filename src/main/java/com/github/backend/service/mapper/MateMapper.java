@@ -13,6 +13,7 @@ public interface MateMapper {
     @Mapping(target="mateId",source="mateId")
     @Mapping(target="mateName",source="name")
     @Mapping(target="mateGender",source="gender")
+    @Mapping(target="isBlacklisted",source="blacklisted")
     MateDto MateEntityToDTO(MateEntity mateEntity);
 
 }

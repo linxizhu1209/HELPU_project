@@ -16,4 +16,5 @@ public class MateDto {
     private Gender mateGender;
     @Schema(description = "메이트 본명",example = "김용용")
     private String mateName;
+    private boolean isBlacklisted;
 }

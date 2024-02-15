@@ -8,7 +8,7 @@ import com.github.backend.service.mapper.UserMapper;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.UnapprovedMateDto;
 import com.github.backend.web.dto.UserDetailDto;
-import com.github.backend.web.dto.UserDto;
+import com.github.backend.web.dto.UserListDto;
 import com.github.backend.web.dto.mates.MateDetailDto;
 import com.github.backend.web.dto.mates.MateDto;
 import com.github.backend.web.entity.MateEntity;
@@ -92,7 +92,7 @@ public class MasterService {
 
 
     // 사용자 부분
-    public List<UserDto> findAllUserList() {
+    public List<UserListDto> findAllUserList() {
         log.info("[GET:MASTER] 관리자의 사용자 조회 요청이 들어왔습니다.");
         RolesEntity roles = rolesRepository.findByRolesName("ROLE_USER");
         List<UserEntity> userList = authRepository.findAllByRoles(roles);
