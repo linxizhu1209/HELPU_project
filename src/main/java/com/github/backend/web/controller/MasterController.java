@@ -4,7 +4,7 @@ import com.github.backend.service.MasterService;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.UnapprovedMateDto;
 import com.github.backend.web.dto.UserDetailDto;
-import com.github.backend.web.dto.UserDto;
+import com.github.backend.web.dto.UserListDto;
 import com.github.backend.web.dto.mates.MateDetailDto;
 import com.github.backend.web.dto.mates.MateDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import retrofit2.http.Path;
 
 import java.util.List;
 
@@ -75,9 +74,9 @@ public CommonResponseDto blackingMate(@RequestParam boolean isBlacklisted,
 
 @Operation(summary = "사용자 리스트 확인", description = "사용자 목록을 조회한다")
 @GetMapping("/user")
-public ResponseEntity<List<UserDto>> viewUserList(){
+public ResponseEntity<List<UserListDto>> viewUserList(){
     log.info("[GET] 사용자 목록 조회 요청 들어왔습니다");
-    List<UserDto> UserList = masterService.findAllUserList();
+    List<UserListDto> UserList = masterService.findAllUserList();
     return ResponseEntity.ok().body(UserList);
 }
 

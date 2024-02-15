@@ -8,8 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class UserDto {
+public class UserListDto {
     private String userId;
     private String userName;
     private Gender userGender;
+    private boolean isBlacklisted;
 }
