@@ -60,3 +60,8 @@ cloud:
       static: ${S3_REGION}
     stack:
       auto: false
+
+message:
+  apikey: ${COOLSMS_APIKEY}
+  api-secret: ${COOLSMS_APISECRET}
+  phone-num: ${COOLSMS_PHONENUMBER}
