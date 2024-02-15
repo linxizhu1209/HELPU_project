@@ -12,4 +12,5 @@ public class MateDto {
     private String mateId;
     private Gender mateGender;
     private String mateName;
+    private boolean isBlacklisted;
 }
