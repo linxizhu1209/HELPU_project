@@ -2,19 +2,18 @@ package com.github.backend.service;
 
 import com.github.backend.repository.*;
 import com.github.backend.service.exception.CommonException;
+import com.github.backend.service.exception.InvalidValueException;
 import com.github.backend.service.exception.NotFoundException;
 import com.github.backend.service.mapper.MateCaringMapper;
 import com.github.backend.web.dto.CommonResponseDto;
+import com.github.backend.web.dto.apply.UserDto;
 import com.github.backend.web.dto.mates.CaringDetailsDto;
 import com.github.backend.web.dto.mates.CaringDto;
 import com.github.backend.web.dto.mates.MainPageDto;
 import com.github.backend.web.dto.mates.MyPageDto;
 import com.github.backend.web.dto.users.RequestUpdateDto;
 import com.github.backend.web.dto.users.ResponseMyInfoDto;
-import com.github.backend.web.entity.CareEntity;
-import com.github.backend.web.entity.MateCareHistoryEntity;
-import com.github.backend.web.entity.MateEntity;
-import com.github.backend.web.entity.MateRatingEntity;
+import com.github.backend.web.entity.*;
 import com.github.backend.web.entity.custom.CustomMateDetails;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
@@ -27,8 +26,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.github.backend.web.dto.apply.UserDto.careEntityToUserDto;
 
 @Service
 @Slf4j
@@ -44,6 +46,7 @@ public class MateService {
     private final RatingRepository ratingRepository;
     private final SendMessageService sendMessageService;
 
+    @Transactional
     public CommonResponseDto applyCaring(Long careId, CustomMateDetails customMateDetails) {
         Long mateId = customMateDetails.getMate().getMateCid();
         CareEntity care = careRepository.findById(careId).orElseThrow();
@@ -52,7 +55,7 @@ public class MateService {
         List<MateCareHistoryEntity> mateCareHistoryEntities = mateCareHistoryRepository.findAllByMateAndMateCareStatus(mate, MateCareStatus.IN_PROGRESS);
         List<CareEntity> careEntities = mateCareHistoryEntities.stream().map(MateCareHistoryEntity::getCare).toList();
         for (CareEntity caring : careEntities) {
-            if (caring.getCareDate() == care.getCareDate()) {
+            if (caring.getCareDate().equals(care.getCareDate())) {
                 return CommonResponseDto.builder().code(404).success(false).message("이미 같은 날짜에 신청한 도움이 있어, 신청이 불가능합니다!").build();
             }
         }
@@ -98,12 +101,27 @@ public class MateService {
 
     ;
 
+    @Transactional
     public List<CaringDto> viewApplyList(String careStatus,CustomMateDetails customMateDetails) {
         MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow();
-        CareStatus status = CareStatus.valueOf(careStatus);
-        List<CareEntity> careList = careRepository.findAllByMateAndCareStatus(mate, status);
-        return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
-    }
+        MateCareStatus mateCareStatus;
+            if (careStatus.equalsIgnoreCase("IN_PROGRESS")) {
+                mateCareStatus = MateCareStatus.IN_PROGRESS;
+            } else if (careStatus.equalsIgnoreCase("HELP_DONE")){
+            mateCareStatus = MateCareStatus.HELP_DONE;
+            }
+            else if(careStatus.equalsIgnoreCase("cancel")) {
+            mateCareStatus = MateCareStatus.CANCEL;
+            }
+            else {
+            throw new InvalidValueException("상태를 잘못입력하였습니다. 다시 입력해주세요.");
+            }
+        List<MateCareHistoryEntity> mateCareHistoryList = mateCareHistoryRepository.findAllByMateAndMateCareStatus(mate, mateCareStatus);
+        List<CareEntity> careList = mateCareHistoryList.stream().map(MateCareHistoryEntity::getCare).toList();
+            return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
+
+        }
+
 
 
     // 신규요청 내역 조회하기(대기중인 도움들 전체 조회)
@@ -186,17 +204,31 @@ public class MateService {
 
     public CommonResponseDto completePayment(Long careCid, boolean isCompletedPayment) {
 
-        CareEntity care = careRepository.findById(careCid).orElseThrow();
-        if (isCompletedPayment) {
-            care.setCareStatus(CareStatus.COMPLETE_PAYMENT);
-        } else {
-            care.setCareStatus(CareStatus.INCOMPLETE_PAYMENT);
+      CareEntity care = careRepository.findById(careCid).orElseThrow();
+      if (isCompletedPayment) {
+        care.setCareStatus(CareStatus.COMPLETE_PAYMENT);
+      } else {
+        care.setCareStatus(CareStatus.INCOMPLETE_PAYMENT);
 //        String messageContent = care.getContent + "의 결제가 완료되지않아 메이트가 기다리고있어요ㅠㅠ 입금을 완료해주세요!";
 //        String phoneNum = care.getUser().getPhoneNumber();
 //        sendMessageService.sendMessage(phoneNum,messageContent);
-        }
-        careRepository.save(care);
-        return CommonResponseDto.builder().code(200).success(true).message("결제 상태가 성공적으로 변경되었습니다!").build();
+      }
+      careRepository.save(care);
+      return CommonResponseDto.builder().code(200).success(true).message("결제 상태가 성공적으로 변경되었습니다!").build();
+    }
+
+    /*
+    * 현재 적용중인 케어시스템 중에서 메이트 조회
+    *
+    */
+    public Long findByCaringMateCid(Long mateCid) {
+      CareEntity checkMates = careRepository.findByMateCid(mateCid).orElseThrow(() -> new CommonException("해당 케어서비스의 메이트가 아닙니다."));
+      return checkMates.getCareCid();
+    }
+
+
+    public MateEntity findByCid(long mateCid) {
+        return mateRepository.findById(mateCid).orElseThrow(() -> new CommonException("메이트가 존재하지 않습니다."));
     }
 }
 

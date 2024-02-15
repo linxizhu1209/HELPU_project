@@ -90,16 +90,16 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
       http
               .csrf((csrf) -> csrf.disable())  //csrf설정 끔
-              .cors((cors) -> cors.disable())  //cors설정 끔
+              // cors 설정
+              .cors((cors) -> {
+                cors.configurationSource(corsConfigurationSource());
+              })
               .sessionManagement((session) ->
                       session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
               )  //세션은 stateless방식
               .formLogin((auth) -> auth.disable())// formLogin 비활성화
               .rememberMe((remember) -> remember.disable())
-              //cors 재설정
-              .cors((cors) -> {
-                cors.configurationSource(corsConfigurationSource());
-              })
+
               //예외처리
               .exceptionHandling((exception) ->
                       exception.authenticationEntryPoint(jwtAuthenticationEntryPoint)
@@ -114,11 +114,6 @@ public class SecurityConfig {
                               .requestMatchers(USER_URL).hasRole("USER")
                               .requestMatchers(MATE_URL).hasRole("MATE")
               )
-              .logout((logout) -> {
-                logout.logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout"));
-                logout.logoutSuccessUrl("/auth/login");
-                logout.invalidateHttpSession(true);
-              })
               //jwt필터를 usernamepassword인증 전에 실행
               .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
