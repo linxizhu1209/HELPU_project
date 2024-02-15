@@ -1,4 +1,4 @@
-package com.github.backend.web.dto;
+package com.github.backend.web.dto.master;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
