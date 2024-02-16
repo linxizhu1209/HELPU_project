@@ -20,8 +20,8 @@ public class ChatService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public void sendMessage(ChatMessageRequestDto message) {
-        ChatRoomEntity chatRoom = chatRoomRepository.findById(message.getRoomCid())
+    public void sendMessage(ChatMessageRequestDto message,Long roomId) {
+        ChatRoomEntity chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
         UserEntity senderUser = chatRoom.getUser();
@@ -52,7 +52,7 @@ public class ChatService {
             chatRepository.save(chatMessage); // chatRepository.save()를 한 번만 호출
 
             // 채팅 메시지를 구독 중인 클라이언트에게 전송
-            messagingTemplate.convertAndSend("/queue/chat/room" + chatRoom.getChatRoomCid(), chatMessage);
+            messagingTemplate.convertAndSend("/topic/chat/message" + chatRoom.getChatRoomCid(), chatMessage);
         }
     }
 

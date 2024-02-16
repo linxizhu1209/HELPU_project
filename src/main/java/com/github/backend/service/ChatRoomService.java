@@ -37,7 +37,7 @@ public class ChatRoomService {
         return newChatRoom.getChatRoomCid();
     }
 
-
+    @Transactional
     public ResponseEntity enterChatRoom(Long chatRoomCid) {
         log.info("채팅방 입장 요청 들어왔습니다");
         ChatRoomEntity chatRoom = chatRoomRepository.findById(chatRoomCid).orElseThrow();

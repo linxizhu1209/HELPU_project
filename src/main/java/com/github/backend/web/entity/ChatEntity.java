@@ -20,9 +20,9 @@ public class ChatEntity extends BaseEntity{
 
     @Column(name = "content")
     @Schema(description = "채팅내용", example = "응?")
-    private String content;
+    private String message;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="chat_room_cid")
     private ChatRoomEntity chatRoom;
 
@@ -30,7 +30,7 @@ public class ChatEntity extends BaseEntity{
 
     @Builder
     public ChatEntity(String content, ChatRoomEntity chatRoom, String sender) {
-        this.content = content;
+        this.message = content;
         this.chatRoom = chatRoom;
         this.sender = sender;
     }

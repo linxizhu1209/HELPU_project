@@ -11,14 +11,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ChatMessageRequestDto {
-    private Long roomCid;
     private String message;
     private String sender;
 
 
     @Builder
-    public ChatMessageRequestDto(Long roomCid, String message, String sender) {
-        this.roomCid = roomCid;
+    public ChatMessageRequestDto(String message, String sender) {
         this.message = message;
         this.sender = sender;
     }
