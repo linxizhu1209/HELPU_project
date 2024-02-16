@@ -10,6 +10,7 @@ import org.mapstruct.factory.Mappers;
 public interface MateMapper {
     MateMapper INSTANCE = Mappers.getMapper(MateMapper.class);
 
+    @Mapping(target="cid",source="mateCid")
     @Mapping(target="mateId",source="mateId")
     @Mapping(target="mateName",source="name")
     @Mapping(target="mateGender",source="gender")

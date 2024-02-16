@@ -11,6 +11,8 @@ import lombok.Setter;
 @Builder
 public class UserListDto {
 
+    @Schema(description = "사용자 cid", example = "2")
+    private Long cid;
     @Schema(description = "사용자 아이디",example = "linxizhu129")
     private String userId;
     @Schema(description = "사용자 본명",example = "김용용")
