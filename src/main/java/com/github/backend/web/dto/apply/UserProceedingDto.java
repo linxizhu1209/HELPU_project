@@ -1,9 +1,13 @@
 package com.github.backend.web.dto.apply;
 
 import com.github.backend.web.entity.CareEntity;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -21,13 +25,21 @@ public class UserProceedingDto {
     private String Date;
     private String Location;
 
+
+
+
     public static List<UserProceedingDto> careEntityToUserDto2(List<CareEntity> careList){
+
+
         List<UserProceedingDto> proceedingService = new ArrayList<>();
         for (CareEntity careEntity : careList) {
+
+            Hibernate.initialize(careEntity.getMate());
+
             UserProceedingDto userProceedingDto = UserProceedingDto.builder()
-                    .mateName(careEntity.getMate().getName())
+                    .mateName(careEntity.getMate().getMateId())
                     .Location(careEntity.getDepartureLoc())
-                    .content(careEntity.getArrivalLoc())
+                    .content(careEntity.getContent())
                     .Date(convertDateToString(careEntity.getCareDate(), careEntity.getCareDateTime(), careEntity.getRequiredTime()))
                     .build();
             proceedingService.add(userProceedingDto);

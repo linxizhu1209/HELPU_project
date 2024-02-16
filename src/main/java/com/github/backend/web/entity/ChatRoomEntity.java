@@ -1,31 +1,40 @@
 package com.github.backend.web.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Builder
+@AllArgsConstructor
 @Table(name = "chat_room_table")
-public class ChatRoomEntity {
+public class ChatRoomEntity extends BaseEntity{
     @Id
     @Column(name = "chat_room_cid")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(description = "채팅 고유 아이디")
     private Long chatRoomCid;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_cid", referencedColumnName = "user_cid")
-    private UserEntity users;
+    @Column(name = "chat_room_name")
+    @Schema(description = "채팅방 이름")
+    private String chatRoomName;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mate_cid", referencedColumnName = "mate_cid")
-    private MateEntity mates;
+    @JsonManagedReference
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE)
+    private List<ChatEntity> chatMessageList;
+
+    @ManyToOne
+    @JoinColumn(name = "user_cid")
+    private UserEntity user;
+
+    @ManyToOne
+    @JoinColumn(name = "mate_cid")
+    private MateEntity mate;
 }

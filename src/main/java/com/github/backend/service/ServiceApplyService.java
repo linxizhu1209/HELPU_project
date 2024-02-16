@@ -9,6 +9,7 @@ import com.github.backend.web.dto.apply.ServiceApplyDto;
 import com.github.backend.web.dto.apply.UserDto;
 import com.github.backend.web.dto.apply.UserMyPageDto;
 import com.github.backend.web.dto.apply.UserProceedingDto;
+import com.github.backend.web.dto.chatDto.CreatedChatRoomDto;
 import com.github.backend.web.entity.CareEntity;
 import com.github.backend.web.entity.MateEntity;
 import com.github.backend.web.entity.MateRatingEntity;
@@ -39,7 +40,8 @@ public class ServiceApplyService {
     private final AuthRepository authRepository;
     private final MateRepository mateRepository;
     private final RatingRepository ratingRepository;
-    public CommonResponseDto applyService(ServiceApplyDto serviceApplyDto, CustomUserDetails customUserDetails) {
+    private final ChatRoomService chatRoomService;
+    public CreatedChatRoomDto applyService(ServiceApplyDto serviceApplyDto, CustomUserDetails customUserDetails) {
         UserEntity userEntity = findById(customUserDetails);
 
         CareEntity careEntity = CareEntity.builder()
@@ -55,9 +57,10 @@ public class ServiceApplyService {
                 .careStatus(CareStatus.WAITING)
                 .build();
 
-        serviceApplyRepository.save(careEntity);
+        CareEntity care = serviceApplyRepository.save(careEntity);
+        Long chatRoomCid = chatRoomService.createRoom(care);
 
-        return CommonResponseDto.builder().code(200).success(true).message("서비스 신청이 완료되었습니다.").build();
+        return CreatedChatRoomDto.builder().chatRoomCid(chatRoomCid).build();
     }
 
 

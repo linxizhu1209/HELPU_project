@@ -1,5 +1,6 @@
 package com.github.backend.web.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.backend.web.entity.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -8,6 +9,8 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.type.YesNoConverter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -59,6 +62,8 @@ public class UserEntity extends BaseEntity{
     @JoinColumn(name = "profile_image_cid", referencedColumnName = "profile_image_cid")
     private ProfileImageEntity profileImage;
 
+
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "roles_cid", referencedColumnName = "roles_cid")
     private RolesEntity roles;
@@ -71,6 +76,8 @@ public class UserEntity extends BaseEntity{
     @ColumnDefault("false")
     @Schema(description = "블랙리스트등록여부", example = "true")
     private boolean blacklisted;
+
+
 
 
     @Builder
