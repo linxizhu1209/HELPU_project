@@ -10,6 +10,9 @@ import java.util.List;
 @Setter
 @Builder
 public class MateDto {
+
+    @Schema(description = "메이트 cid", example = "1")
+    private Long cid;
     @Schema(description = "메이트 아이디",example = "linxizhu129")
     private String mateId;
     @Schema(description = "메이트 성별",example = "MEN/WOMEN")
