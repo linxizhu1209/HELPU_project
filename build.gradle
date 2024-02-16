@@ -62,6 +62,10 @@ dependencies {
 
     // configuration properties
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.webjars:stomp-websocket:2.3.3-1'
 }
 
 tasks.named('bootJar') {

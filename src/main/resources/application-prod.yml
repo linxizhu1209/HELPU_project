@@ -20,7 +20,7 @@ spring:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     repositories:
       bootstrap-mode: deferred
 
@@ -37,6 +37,9 @@ spring:
   default:
     admin_id: supercoding
     admin_pwd: admin1234
+
+  aes:
+    secret: ${AES_KEY}
 
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8
