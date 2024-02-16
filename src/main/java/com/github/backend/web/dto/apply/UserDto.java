@@ -25,7 +25,7 @@ public class UserDto {
         for (CareEntity careEntity : careList) {
             UserDto userDto = UserDto.builder()
                     .Location(careEntity.getDepartureLoc())
-                    .content(careEntity.getArrivalLoc())
+                    .content(careEntity.getContent())
                     .Date(convertDateToString(careEntity.getCareDate(), careEntity.getCareDateTime(), careEntity.getRequiredTime()))
                     .build();
             userDtos.add(userDto);

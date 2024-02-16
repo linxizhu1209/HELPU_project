@@ -1,11 +1,14 @@
 package com.github.backend.web.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.backend.web.entity.enums.Gender;
 import com.github.backend.web.entity.enums.MateStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -61,6 +64,8 @@ public class MateEntity extends BaseEntity{
   @JoinColumn(name = "profile_image_cid", referencedColumnName = "profile_image_cid")
   private ProfileImageEntity profileImage;
 
+
+  @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "roles_cid", referencedColumnName = "roles_cid")
   private RolesEntity roles;
@@ -78,6 +83,7 @@ public class MateEntity extends BaseEntity{
   @Schema(description = "등록현황", example = "인증 전")
   @Enumerated(EnumType.STRING)
   private MateStatus mateStatus;
+
 
   public MateEntity update(String email, String password, String phoneNumber) {
     this.email = email;

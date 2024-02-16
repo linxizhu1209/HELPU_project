@@ -1,10 +1,13 @@
 package com.github.backend.web.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.backend.web.entity.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -56,6 +59,8 @@ public class UserEntity extends BaseEntity{
     @JoinColumn(name = "profile_image_cid", referencedColumnName = "profile_image_cid")
     private ProfileImageEntity profileImage;
 
+
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "roles_cid", referencedColumnName = "roles_cid")
     private RolesEntity roles;
@@ -67,6 +72,8 @@ public class UserEntity extends BaseEntity{
     @Column(name = "is_blacklisted", length = 10)
     @Schema(description = "블랙리스트등록여부", example = "true")
     private boolean isBlacklisted;
+
+
 
 
     @Builder

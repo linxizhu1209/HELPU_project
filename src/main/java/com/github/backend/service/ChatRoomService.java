@@ -23,9 +23,7 @@ import java.util.List;
 public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
-    private final AuthRepository authRepository;
     private final ServiceApplyRepository serviceApplyRepository;
-    private final MateRepository mateRepository;
     private final ChatRepository chatRepository;
 
     @Transactional
@@ -57,7 +55,6 @@ public class ChatRoomService {
         }
         else{
             log.info("해당 채팅방의 채팅 이력을 보여줍니다.");
-            // 메시지가 저장이 되면 구현하겠음
             List<ChatEntity> chatList = chatRepository.findChatEntitiesByChatRoom(chatRoom);
             return ResponseEntity.ok().body(chatList);
         }

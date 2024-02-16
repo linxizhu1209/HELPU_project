@@ -12,13 +12,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ChatMessageRequestDto {
     private String message;
-    private String sender;
-
 
     @Builder
-    public ChatMessageRequestDto(String message, String sender) {
+    public ChatMessageRequestDto(String message) {
         this.message = message;
-        this.sender = sender;
     }
 
 

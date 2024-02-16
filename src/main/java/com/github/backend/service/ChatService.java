@@ -20,28 +20,29 @@ public class ChatService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public void sendMessage(ChatMessageRequestDto message,Long roomId) {
+    public void sendMessage(ChatMessageRequestDto message,Long roomId, String sender) {
         ChatRoomEntity chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+
 
         UserEntity senderUser = chatRoom.getUser();
         MateEntity senderMate = chatRoom.getMate();
 
-        String senderName = message.getSender();
         ChatEntity chatMessage;
 
-        if (senderUser.getName().equals(senderName)) {
+        if (senderUser.getUserId().equals(sender)) {
             // 메시지를 보낸 사람이 User인 경우 처리
             chatMessage = ChatEntity.builder()
                     .content(message.getMessage())
-                    .sender(senderName)
+                    .sender(sender)
                     .chatRoom(chatRoom)
                     .build();
-        } else if (senderMate.getName().equals(senderName)) {
+        } else if (senderMate.getMateId().equals(sender)) {
             // 메시지를 보낸 사람이 Mate인 경우 처리
             chatMessage = ChatEntity.builder()
                     .content(message.getMessage())
-                    .sender(senderName)
+                    .sender(sender)
                     .chatRoom(chatRoom)
                     .build();
         } else {
@@ -52,7 +53,7 @@ public class ChatService {
             chatRepository.save(chatMessage); // chatRepository.save()를 한 번만 호출
 
             // 채팅 메시지를 구독 중인 클라이언트에게 전송
-            messagingTemplate.convertAndSend("/topic/chat/message" + chatRoom.getChatRoomCid(), chatMessage);
+            messagingTemplate.convertAndSend("/queue/chat/message/" + chatRoom.getChatRoomCid(), chatMessage);
         }
     }
 

@@ -6,7 +6,6 @@ import com.github.backend.service.exception.InvalidValueException;
 import com.github.backend.service.exception.NotFoundException;
 import com.github.backend.service.mapper.MateCaringMapper;
 import com.github.backend.web.dto.CommonResponseDto;
-import com.github.backend.web.dto.apply.UserDto;
 import com.github.backend.web.dto.mates.CaringDetailsDto;
 import com.github.backend.web.dto.mates.CaringDto;
 import com.github.backend.web.dto.mates.MainPageDto;
@@ -15,7 +14,6 @@ import com.github.backend.web.dto.users.RequestUpdateDto;
 import com.github.backend.web.dto.users.ResponseMyInfoDto;
 import com.github.backend.web.entity.*;
 import com.github.backend.web.entity.custom.CustomMateDetails;
-import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
 import com.github.backend.web.entity.enums.ErrorCode;
 import com.github.backend.web.entity.enums.MateCareStatus;
@@ -25,8 +23,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,14 +33,15 @@ import static com.github.backend.web.dto.apply.UserDto.careEntityToUserDto;
 @RequiredArgsConstructor
 public class MateService {
 
-    private final ImageUploadService imageUploadService;
-    private final ProfileImageRepository profileImageRepository;
+
     private final PasswordEncoder passwordEncoder;
     private final ServiceApplyRepository careRepository;
     private final MateRepository mateRepository;
     private final MateCareHistoryRepository mateCareHistoryRepository;
     private final RatingRepository ratingRepository;
-    private final SendMessageService sendMessageService;
+    private final ChatRoomRepository chatRoomRepository;
+    private final AuthRepository authRepository;
+
 
     @Transactional
     public CommonResponseDto applyCaring(Long careId, CustomMateDetails customMateDetails) {
@@ -59,6 +56,7 @@ public class MateService {
                 return CommonResponseDto.builder().code(404).success(false).message("이미 같은 날짜에 신청한 도움이 있어, 신청이 불가능합니다!").build();
             }
         }
+        UserEntity user = authRepository.findById(care.getUser().getUserCid()).orElseThrow();
         care.setMate(mate);
         care.setCareStatus(CareStatus.IN_PROGRESS);
 //        String messageContent = care.getContent + "가 매칭되었습니다!";
@@ -68,6 +66,15 @@ public class MateService {
         MateCareHistoryEntity mateCareHistory = MateCareHistoryEntity.builder().mate(mate).care(care).mateCareStatus(MateCareStatus.IN_PROGRESS).build();
         mateCareHistoryRepository.save(mateCareHistory);
         careRepository.save(care);
+
+        ChatRoomEntity chatRoomEntity = ChatRoomEntity.builder()
+                .mate(mate)
+                .user(user)
+                .build();
+
+        chatRoomRepository.save(chatRoomEntity);
+
+
         return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build();
     }
 

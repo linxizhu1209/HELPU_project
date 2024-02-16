@@ -1,5 +1,7 @@
 package com.github.backend.web.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,9 +26,9 @@ public class ChatRoomEntity extends BaseEntity{
     @Schema(description = "채팅방 이름")
     private String chatRoomName;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE)
     private List<ChatEntity> chatMessageList;
-
 
     @ManyToOne
     @JoinColumn(name = "user_cid")
