@@ -28,7 +28,7 @@ public class MasterController {
 @PostMapping("/approve/{mateCid}")
 public CommonResponseDto approveMate(
         @PathVariable Long mateCid){
-    log.info("[PUT] 메이트 인증승인 요청 들어왔습니다");
+    log.info("[POST] 메이트 인증승인 요청 들어왔습니다");
     return masterService.approveMate(mateCid);
 }
 
@@ -37,7 +37,7 @@ public CommonResponseDto approveMate(
 public CommonResponseDto unapprovedMate(
         @PathVariable Long mateCid,
         UnapprovedMateDto unapprovedMateDto){
-    log.info("[PUT] 메이트 인증 미승인 요청 들어왔습니다");
+    log.info("[POST] 메이트 인증 미승인 요청 들어왔습니다");
     return masterService.unapprovedMate(mateCid,unapprovedMateDto);
     }
 
@@ -66,6 +66,7 @@ public ResponseEntity<MateDetailDto> viewMate(@PathVariable Long mateCid){
 @PutMapping("/mate/{mateCid}")
 public CommonResponseDto blackingMate(@RequestParam boolean isBlacklisted,
                                       @PathVariable Long mateCid){
+    log.info("[PUT] 메이트 블랙리스트 전환/해제 요청 들어왔습니다");
     return masterService.blacklistingMate(isBlacklisted,mateCid);
 }
 
@@ -92,6 +93,7 @@ public ResponseEntity<UserDetailDto> viewUser(@PathVariable Long userCid){
 @PutMapping("/user/{userCid}")
 public CommonResponseDto blackingUser(@RequestParam boolean isBlacklisted,
                                       @PathVariable Long userCid){
+    log.info("[PUT] 사용자 블랙리스트 전환/해제 요청 들어왔습니다");
     return masterService.blacklistingUser(isBlacklisted,userCid);
 }
 }
