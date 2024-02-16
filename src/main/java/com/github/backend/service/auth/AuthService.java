@@ -64,7 +64,7 @@ public class AuthService {
         Map<String, String> response = new HashMap<>();
 
         if(users == null && mates == null){
-          throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
+          throw new CommonException("아이디 혹은 비밀번호가 틀렸습니다.", ErrorCode.BAD_REQUEST_RESPONSE);
         }
         try{
           // 1. ID(email)/PW 기반으로 AuthenticationToken 생성
@@ -72,7 +72,7 @@ public class AuthService {
           // 2. 실제 검증 로직
           SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-          // 3. 로그아웃 토큰이 있는 경우 삭제
+          // 3. redis에 로그아웃 토큰이 있는 경우 삭제
           if (redisTemplate.opsForValue().get("logout: " + requestDTO.getUserId()) != null) {
             redisTemplate.delete("logout: " + requestDTO.getUserId());
           }
@@ -119,11 +119,11 @@ public class AuthService {
 
           }
 
+          // Redis에 token 적용
           redisTemplate.opsForValue().set(requestDTO.getUserId(), accessToken, Duration.ofSeconds(1800));
           redisTemplate.opsForValue().set("RF: " + requestDTO.getUserId(), refreshToken, Duration.ofHours(1L));
 
           httpServletResponse.addCookie(new Cookie("refresh_token", refreshToken));
-
 
           response.put("http_status", HttpStatus.OK.toString());
           response.put("message", "로그인 되었습니다");
@@ -143,7 +143,7 @@ public class AuthService {
     @Transactional
     public CommonResponseDto userSignup(RequestSaveUserDto requestSaveUserDto) {
       if (authRepository.existsByUserId(requestSaveUserDto.getUserId())) {
-        throw new IllegalStateException("이미 존재하는 아이디입니다.");
+        throw new CommonException("이미 존재하는 아이디입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
       }
       requestSaveUserDto.setPassword(passwordEncoder.encode(requestSaveUserDto.getPassword()));
 
@@ -179,7 +179,7 @@ public class AuthService {
     @Transactional
     public CommonResponseDto mateSignup(RequestSaveMateDto requestMateDto) {
         if (mateRepository.existsByMateId(requestMateDto.getMateId())) {
-          throw new RuntimeException("이미 존재하는 아이디입니다.");
+          throw new CommonException("이미 존재하는 아이디입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
         }
         requestMateDto.setPassword(passwordEncoder.encode(requestMateDto.getPassword()));
 
