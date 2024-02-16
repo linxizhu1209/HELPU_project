@@ -90,9 +90,13 @@ public class AuthService {
             if(isDeletedUser != null && isDeletedUser.equals("deleted"))
               throw new CommonException("해당 사용자는 탈퇴한 계정입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
 
+            if(users.isBlacklisted())
+              throw new CommonException("해당 사용자는 관리자에게 문의하십시오. helpUAdmin@admin.com", ErrorCode.BAD_REQUEST_RESPONSE);
+
             accessToken = jwtTokenProvider.createAccessToken(1, users.getUserId());
             refreshToken = jwtTokenProvider.createRefreshToken(1, users.getUserId());
             rolesName = users.getRoles().getRolesName();
+
 
           }else if(mates != null){
             String isDeletedMate = mates.getIsDeleted();
@@ -103,13 +107,16 @@ public class AuthService {
             if(isDeletedMate != null && isDeletedMate.equals("deleted"))
               throw new CommonException("해당 메이트는 탈퇴한 계정입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
 
-            if(mates.getMateStatus().equals(MateStatus.PREPARING)){
+            if(mates.isBlacklisted())
+              throw new CommonException("해당 메이트는 관리자에게 문의하십시오. \n helpUAdmin@admin.com", ErrorCode.BAD_REQUEST_RESPONSE);
+
+            if(mates.getMateStatus().equals(MateStatus.PREPARING))
               throw new CommonException("관리자의 허가가 필요한 아이디 입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
-            }
 
             accessToken = jwtTokenProvider.createAccessToken(2, mates.getMateId());
             refreshToken = jwtTokenProvider.createRefreshToken(2, mates.getMateId());
             rolesName = mates.getRoles().getRolesName();
+
           }
 
           redisTemplate.opsForValue().set(requestDTO.getUserId(), accessToken, Duration.ofSeconds(1800));
