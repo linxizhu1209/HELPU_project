@@ -34,8 +34,9 @@ public class MateController {
     private final MateService mateService;
 
     @Operation(summary ="메이트 메인페이지", description = "메이트의 메인페이지 조회")
-    @GetMapping("")
+    @GetMapping("/mainPage")
     public ResponseEntity mainPage(){
+        log.info("[GET] 메이트 메인페이지 조회 요청 들어왔습니다");
         // 신규요청 도움 건의 개수를 보여준다("대기중"상태인 도움 개수)
         MainPageDto mainPageDto = mateService.countWaitingCare();
         return ResponseEntity.ok().body(mainPageDto);
@@ -45,15 +46,16 @@ public class MateController {
     @GetMapping("/mypage")
     public ResponseEntity myPage(@AuthenticationPrincipal CustomMateDetails customMateDetails){
         // 도움 상태에 따른 개수 및 별점을 보여준다
+        log.info("[GET] 메이트 마이페이지 조회 요청 들어왔습니다");
         MyPageDto myPageDto = mateService.countCareStatus(customMateDetails);
         return ResponseEntity.ok().body(myPageDto);
     }
 
     @Operation(summary = "도움 지원하기", description = "진행중인 도움 모집건에 지원한다.")
-    @PostMapping("/{careCid}")
+    @PutMapping("/apply/{careCid}")
     public CommonResponseDto applyCaring(@PathVariable Long careCid,
                                          @AuthenticationPrincipal CustomMateDetails customMateDetails){
-        log.info("[GET] 메이트 로그인 후 메인화면 조회 요청 들어왔습니다");
+        log.info("[Put] 메이트의 도움 지원 요청들어왔습니다.");
         return mateService.applyCaring(careCid,customMateDetails);
     }
 
@@ -61,6 +63,7 @@ public class MateController {
     @PutMapping("/finish/{careCid}")
     public CommonResponseDto finishCaring(@PathVariable Long careCid,
                                           @AuthenticationPrincipal CustomMateDetails customMateDetails){
+        log.info("[Put] 메이트의 도움완료 요청들어왔습니다.");
         return mateService.finishCaring(careCid,customMateDetails);
     }
 
@@ -69,23 +72,26 @@ public class MateController {
     @PutMapping("/cancel/{careCid}")
     public CommonResponseDto cancelCaring(@PathVariable Long careCid,
                                           @AuthenticationPrincipal CustomMateDetails customMateDetails){
+        log.info("[Put] 메이트의 도움취소 요청들어왔습니다.");
         return mateService.cancelCaring(careCid,customMateDetails);
     }
 
     @Operation(summary = "도움 결제완료", description = "도움에 대한 결제가 됐을 경우 완료한다")
-    @PutMapping("/iscompletedPayment")
-    public CommonResponseDto completePayment(@RequestParam Long careCid,
-                                          @RequestParam boolean isCompletedPayment
-                                          ){
+    @PutMapping("/confirmPayment/{careCid}")
+    public CommonResponseDto completePayment(
+            @PathVariable Long careCid,
+            @RequestParam boolean isCompletedPayment){
+        log.info("[Put] 메이트의 도움 결제 완료/미완료 요청들어왔습니다.");
         return mateService.completePayment(careCid,isCompletedPayment);
     }
 
     @Operation(summary = "지원한 도움 목록 조회", description = "지원한 도움 목록을 조회한다/진행중/완료")
-    @GetMapping("/CareHistory")
+    @GetMapping("/careHistory")
     public ResponseEntity<List<CaringDto>> viewApplyList(
             @RequestParam String careStatus,
             @AuthenticationPrincipal CustomMateDetails customMateDetails
     ){
+        log.info("[GET] 메이트의 도움 내역 조회 요청 들어왔습니다");
         List<CaringDto> caringList = mateService.viewApplyList(careStatus,customMateDetails);
         return ResponseEntity.ok().body(caringList);
     }
@@ -106,6 +112,7 @@ public class MateController {
             @PathVariable Long careCid,
             @AuthenticationPrincipal CustomMateDetails customMateDetails
     ){
+        log.info("[POST] 메이트의 도움 내역 상세 요청들어왔습니다.");
         CaringDetailsDto careDetail = mateService.viewCareDetail(careCid);
         return ResponseEntity.ok().body(careDetail);
     }
