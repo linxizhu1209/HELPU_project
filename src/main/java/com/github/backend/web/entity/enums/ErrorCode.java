@@ -8,8 +8,11 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
-    SUCCESS_RESPONSE("200", "Successful response", HttpStatus.OK),
-    FAIL_RESPONSE("404", "Fail response", HttpStatus.INTERNAL_SERVER_ERROR);
+    SUCCESS_RESPONSE("200", "Successful", HttpStatus.OK),
+    FAIL_RESPONSE("404", "Not Found Error", HttpStatus.NOT_FOUND),
+    BAD_REQUEST_RESPONSE("400", "Bad Request Error", HttpStatus.BAD_REQUEST),
+    UNAUTHORIZED_RESPONSE("401", "Unauthorized Error", HttpStatus.UNAUTHORIZED),
+    INTERNAL_FAIL_RESPONSE("500", "Internal Error", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private String errCode;
     private String errMsg;
