@@ -27,7 +27,7 @@ public class RequestSaveMateDto {
     private String gender;
     @Schema(description = "메이트 주소", example = "인천시")
     private String address;
-    @Schema(description = "메이트 주민등록번호", example = "011111-402040")
+    @Schema(description = "메이트 주민등록번호", example = "950000-1020200")
     private String registrationNum;
     @Schema(description = "메이트 권한(기본값 : 2)", example = "2")
     private Long roles;

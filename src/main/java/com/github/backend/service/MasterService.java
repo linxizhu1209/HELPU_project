@@ -1,5 +1,6 @@
 package com.github.backend.service;
 
+import com.github.backend.config.security.util.AESUtil;
 import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.MateRepository;
 import com.github.backend.repository.RolesRepository;
@@ -30,7 +31,7 @@ public class MasterService {
     private final SendMessageService sendMessageService;
     private final AuthRepository authRepository;
     private final RolesRepository rolesRepository;
-
+    private final AESUtil aesUtil;
 
     // 메이트 부분
     public CommonResponseDto approveMate(Long mateCid) {
@@ -64,16 +65,14 @@ public class MasterService {
 
     public MateDetailDto findMate(Long mateCid) {
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
-//        String registrationNumber="";
-//        for(int i=0; i<=8;i++){
-//            registrationNumber += mate.getRegistrationNum().charAt(i)+"";
-//        }
-//        registrationNumber += "******";
+
+        String decryptNum = maskRegistrationNumber(aesUtil.decrypt(mate.getRegistrationNum()));
+
         return MateDetailDto.builder()
                 .mateId(mate.getMateId())
                 .phoneNum(mate.getPhoneNumber())
                 .email(mate.getEmail())
-                .registrationNum(mate.getRegistrationNum()) // 뒷자리 첫번째까지만 공개
+                .registrationNum(decryptNum) // 뒷자리 첫번째까지만 공개
                 .mateGender(mate.getGender())
                 .mateName(mate.getName())
                 .mateStatus(mate.getMateStatus())
@@ -113,5 +112,15 @@ public class MasterService {
                 .phone(user.getPhoneNumber())
                 .email(user.getEmail()).build();
 
+    }
+
+    /*-------------------------------함수 추가-----------------------------------*/
+    private String maskRegistrationNumber(String decryptedNum) {
+      if (decryptedNum != null && decryptedNum.length() >= 8) {
+        // 뒷자리 첫 번째 이후의 문자열을 '*'로 대체
+        String maskedPart = decryptedNum.substring(8).replaceAll(".", "*");
+        return decryptedNum.substring(0, 8) + maskedPart;
+      }
+      return decryptedNum;
     }
 }

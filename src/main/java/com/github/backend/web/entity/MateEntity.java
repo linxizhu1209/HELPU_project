@@ -50,7 +50,7 @@ public class MateEntity extends BaseEntity{
   @Enumerated(EnumType.STRING)
   private Gender gender;
 
-  @Column(name = "mate_registration_num", length = 15)
+  @Column(name = "mate_registration_num")
   @Schema(description = "주민등록번호", example = "950000-1020200")
   private String registrationNum;
 

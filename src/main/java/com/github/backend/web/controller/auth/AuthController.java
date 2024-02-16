@@ -1,23 +1,17 @@
 package com.github.backend.web.controller.auth;
 
 import com.github.backend.service.auth.AuthService;
-import com.github.backend.service.auth.UserService;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.mates.RequestSaveMateDto;
 import com.github.backend.web.dto.users.*;
-import com.github.backend.web.entity.custom.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserService userService;
     @Operation(summary = "유저 회원가입 요청", description = "유저 회원가입을 한다.")
     @PostMapping("/user/signup")
     public CommonResponseDto userSignUp(@RequestBody RequestSaveUserDto requestSaveUserDto){
