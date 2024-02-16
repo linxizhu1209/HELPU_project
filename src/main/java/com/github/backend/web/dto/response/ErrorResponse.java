@@ -18,17 +18,10 @@ public class ErrorResponse {
     private HttpStatus status;
 
     public ErrorResponse (Throwable e){
-      if (e instanceof CommonException) {
-        CommonException ex = (CommonException)e ;
-        this.code = ex.getErrCode();
-        this.message = ex.getErrMsg();
-        this.status = ex.getStatus();
-      } else {
-        CommonException ex = new CommonException(ErrorCode.FAIL_RESPONSE);
-        this.code = ex.getErrCode();
-        this.message = ex.getErrMsg();
-        this.status = HttpStatus.INTERNAL_SERVER_ERROR;
-      }
+      CommonException ex = (CommonException)e ;
+      this.code = ex.getErrCode();
+      this.status = ex.getStatus();
+      this.message = ex.getMessage();
     }
 
     public ResponseEntity build() {

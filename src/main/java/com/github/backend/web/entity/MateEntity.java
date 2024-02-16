@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -69,7 +70,8 @@ public class MateEntity extends BaseEntity{
   @Schema(description = "삭제여부", example = "Y")
   private String isDeleted;
 
-  @Column(name = "is_blacklisted", length = 10)
+  @Column(name = "is_blacklisted", columnDefinition = "TINYINT(1)")
+  @ColumnDefault("false")
   @Schema(description = "블랙리스트등록여부", example = "true")
   private boolean blacklisted;
 

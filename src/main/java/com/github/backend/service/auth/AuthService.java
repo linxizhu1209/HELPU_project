@@ -5,6 +5,7 @@ import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.MateRepository;
 import com.github.backend.repository.RolesRepository;
 
+import com.github.backend.service.exception.CommonException;
 import com.github.backend.service.exception.NotFoundException;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.mates.RequestSaveMateDto;
@@ -12,7 +13,9 @@ import com.github.backend.web.dto.users.*;
 import com.github.backend.web.entity.MateEntity;
 import com.github.backend.web.entity.RolesEntity;
 import com.github.backend.web.entity.UserEntity;
+import com.github.backend.web.entity.enums.ErrorCode;
 import com.github.backend.web.entity.enums.Gender;
+import com.github.backend.web.entity.enums.MateStatus;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -56,8 +59,12 @@ public class AuthService {
     public ResponseEntity<?> login(RequestLoginDto requestDTO, HttpServletResponse httpServletResponse) {
         UserEntity users = authRepository.findByUserId(requestDTO.getUserId()).isPresent() == false ? null : authRepository.findByUserId(requestDTO.getUserId()).get();
         MateEntity mates = mateRepository.findByMateId(requestDTO.getUserId()).isPresent() == false ? null : mateRepository.findByMateId(requestDTO.getUserId()).get();
+
+        String rolesName = "";
+        Map<String, String> response = new HashMap<>();
+
         if(users == null && mates == null){
-          throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
+          throw new CommonException("아이디 혹은 비밀번호가 틀렸습니다.", ErrorCode.BAD_REQUEST_RESPONSE);
         }
         try{
           // 1. ID(email)/PW 기반으로 AuthenticationToken 생성
@@ -65,7 +72,7 @@ public class AuthService {
           // 2. 실제 검증 로직
           SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-          // 3. 로그아웃 토큰이 있는 경우 삭제
+          // 3. redis에 로그아웃 토큰이 있는 경우 삭제
           if (redisTemplate.opsForValue().get("logout: " + requestDTO.getUserId()) != null) {
             redisTemplate.delete("logout: " + requestDTO.getUserId());
           }
@@ -76,68 +83,71 @@ public class AuthService {
           // 4. 유저, 메이트 인증 정보를 기반으로 JWT토큰 생성
           if(users != null){
             String isDeletedUser = users.getIsDeleted();
-            if(isDeletedUser != null && isDeletedUser.equals("deleted"))
-              throw new NotFoundException("해당 사용자는 탈퇴한 계정입니다.");
 
             if(!passwordEncoder.matches(requestDTO.getPassword(), users.getPassword()))
-              throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
+              throw new CommonException("아이디 혹은 비밀번호가 틀렸습니다.", ErrorCode.BAD_REQUEST_RESPONSE);
+
+            if(isDeletedUser != null && isDeletedUser.equals("deleted"))
+              throw new CommonException("해당 사용자는 탈퇴한 계정입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
+
+            if(users.isBlacklisted())
+              throw new CommonException("해당 사용자는 관리자에게 문의하십시오. helpUAdmin@admin.com", ErrorCode.BAD_REQUEST_RESPONSE);
 
             accessToken = jwtTokenProvider.createAccessToken(1, users.getUserId());
             refreshToken = jwtTokenProvider.createRefreshToken(1, users.getUserId());
+            rolesName = users.getRoles().getRolesName();
+
 
           }else if(mates != null){
             String isDeletedMate = mates.getIsDeleted();
-            if(isDeletedMate != null && isDeletedMate.equals("deleted"))
-              throw new NotFoundException("해당 메이트는 탈퇴한 계정입니다.");
 
             if(!passwordEncoder.matches(requestDTO.getPassword(), mates.getPassword()))
-              throw new NotFoundException("아이디 혹은 비밀번호가 틀렸습니다.");
+              throw new CommonException("아이디 혹은 비밀번호가 틀렸습니다.", ErrorCode.BAD_REQUEST_RESPONSE);
+
+            if(isDeletedMate != null && isDeletedMate.equals("deleted"))
+              throw new CommonException("해당 메이트는 탈퇴한 계정입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
+
+            if(mates.isBlacklisted())
+              throw new CommonException("해당 메이트는 관리자에게 문의하십시오. \n helpUAdmin@admin.com", ErrorCode.BAD_REQUEST_RESPONSE);
+
+            if(mates.getMateStatus().equals(MateStatus.PREPARING))
+              throw new CommonException("관리자의 허가가 필요한 아이디 입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
 
             accessToken = jwtTokenProvider.createAccessToken(2, mates.getMateId());
             refreshToken = jwtTokenProvider.createRefreshToken(2, mates.getMateId());
+            rolesName = mates.getRoles().getRolesName();
+
           }
 
+          // Redis에 token 적용
           redisTemplate.opsForValue().set(requestDTO.getUserId(), accessToken, Duration.ofSeconds(1800));
           redisTemplate.opsForValue().set("RF: " + requestDTO.getUserId(), refreshToken, Duration.ofHours(1L));
 
           httpServletResponse.addCookie(new Cookie("refresh_token", refreshToken));
 
-          Map<String, String> response = new HashMap<>();
           response.put("http_status", HttpStatus.OK.toString());
           response.put("message", "로그인 되었습니다");
           response.put("token_type", BEARER_TYPE);
           response.put("access_token", accessToken);
           response.put("refresh_token", refreshToken);
+          response.put("roles", rolesName);
           return ResponseEntity.ok(response);
         }catch (BadCredentialsException e) {
           e.printStackTrace();
-          Map<String, String> response = new HashMap<>();
           response.put("message", "잘못된 자격 증명입니다");
           response.put("http_status", HttpStatus.UNAUTHORIZED.toString());
           return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-        } catch (UsernameNotFoundException e) {
-          e.printStackTrace();
-          Map<String, String> response = new HashMap<>();
-          response.put("message", "가입되지 않은 회원입니다");
-          response.put("http_status", HttpStatus.NOT_FOUND.toString());
-          return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-        } catch (Exception e) {
-          e.printStackTrace();
-          Map<String, String> response = new HashMap<>();
-          response.put("message", "알 수 없는 오류가 발생했습니다");
-          response.put("http_status", HttpStatus.INTERNAL_SERVER_ERROR.toString());
-          return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
         }
     }
 
     @Transactional
     public CommonResponseDto userSignup(RequestSaveUserDto requestSaveUserDto) {
       if (authRepository.existsByUserId(requestSaveUserDto.getUserId())) {
-        throw new IllegalStateException("이미 존재하는 아이디입니다.");
+        throw new CommonException("이미 존재하는 아이디입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
       }
       requestSaveUserDto.setPassword(passwordEncoder.encode(requestSaveUserDto.getPassword()));
 
-      RolesEntity roles = rolesRepository.findById(requestSaveUserDto.getRoles()).orElseThrow(() -> new NotFoundException("권한이 존재하지 않습니다."));
+      RolesEntity roles = rolesRepository.findById(requestSaveUserDto.getRoles()).orElseThrow(() -> new CommonException("권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_RESPONSE));
 
       Gender gender;
       if (requestSaveUserDto.getGender().equals("남자"))
@@ -169,11 +179,11 @@ public class AuthService {
     @Transactional
     public CommonResponseDto mateSignup(RequestSaveMateDto requestMateDto) {
         if (mateRepository.existsByMateId(requestMateDto.getMateId())) {
-          throw new RuntimeException("이미 존재하는 아이디입니다.");
+          throw new CommonException("이미 존재하는 아이디입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
         }
         requestMateDto.setPassword(passwordEncoder.encode(requestMateDto.getPassword()));
 
-        RolesEntity roles = rolesRepository.findById(requestMateDto.getRoles()).orElseThrow(() -> new NotFoundException("권한이 존재하지 않습니다."));
+        RolesEntity roles = rolesRepository.findById(requestMateDto.getRoles()).orElseThrow(() -> new CommonException("권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_RESPONSE));
 
         Gender gender;
         if (requestMateDto.getGender().equals("남자"))
@@ -199,7 +209,7 @@ public class AuthService {
 
        return CommonResponseDto.builder()
                 .code(200)
-                .message("메이트 회원가입이 완료되었습니다.")
+                .message("메이트 회원가입이 완료되었습니다. (관리자의 허가가 필요합니다)")
                 .success(true)
                 .build();
     }

@@ -6,15 +6,7 @@ import org.springframework.http.HttpStatus;
 public class CommonException extends RuntimeException {
     private ErrorCode errorCode;
 
-    public CommonException() { super(); }
-
     public CommonException(String message) { super(message); }
-
-    public CommonException(Throwable e) { super(e); }
-
-    public CommonException(String message, Throwable e) {
-      super(message, e);
-    }
 
     public CommonException(ErrorCode errorCode) {
         super(errorCode.getErrCode());
