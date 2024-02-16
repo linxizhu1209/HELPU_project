@@ -1,12 +1,12 @@
 package com.github.backend.service.auth;
 
 import com.github.backend.config.security.JwtTokenProvider;
+import com.github.backend.config.security.util.AESUtil;
 import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.MateRepository;
 import com.github.backend.repository.RolesRepository;
 
 import com.github.backend.service.exception.CommonException;
-import com.github.backend.service.exception.NotFoundException;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.mates.RequestSaveMateDto;
 import com.github.backend.web.dto.users.*;
@@ -26,7 +26,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,15 +45,15 @@ public class AuthService {
     private final RolesRepository rolesRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
-
+    private final AESUtil aesUtil;
     private final String BEARER_TYPE = "Bearer";
-    /**
+
+    /*
      * UsernamePasswordAuthenticationToken을 통한 Spring Security인증 진행
      * 이후 tokenService에 userId값을 전달하여 토큰 생성
      * @param requestDTO
      * @return response
      */
-
     @Transactional
     public ResponseEntity<?> login(RequestLoginDto requestDTO, HttpServletResponse httpServletResponse) {
         UserEntity users = authRepository.findByUserId(requestDTO.getUserId()).isPresent() == false ? null : authRepository.findByUserId(requestDTO.getUserId()).get();
@@ -108,7 +107,7 @@ public class AuthService {
               throw new CommonException("해당 메이트는 탈퇴한 계정입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
 
             if(mates.isBlacklisted())
-              throw new CommonException("해당 메이트는 관리자에게 문의하십시오. \n helpUAdmin@admin.com", ErrorCode.BAD_REQUEST_RESPONSE);
+              throw new CommonException("해당 메이트는 관리자에게 문의하십시오. helpUAdmin@admin.com", ErrorCode.BAD_REQUEST_RESPONSE);
 
             if(mates.getMateStatus().equals(MateStatus.PREPARING))
               throw new CommonException("관리자의 허가가 필요한 아이디 입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
@@ -120,8 +119,8 @@ public class AuthService {
           }
 
           // Redis에 token 적용
-          redisTemplate.opsForValue().set(requestDTO.getUserId(), accessToken, Duration.ofSeconds(1800));
-          redisTemplate.opsForValue().set("RF: " + requestDTO.getUserId(), refreshToken, Duration.ofHours(1L));
+          redisTemplate.opsForValue().set(requestDTO.getUserId(), accessToken, Duration.ofHours(1L));
+          redisTemplate.opsForValue().set("RF: " + requestDTO.getUserId(), refreshToken, Duration.ofHours(3L));
 
           httpServletResponse.addCookie(new Cookie("refresh_token", refreshToken));
 
@@ -132,6 +131,7 @@ public class AuthService {
           response.put("refresh_token", refreshToken);
           response.put("roles", rolesName);
           return ResponseEntity.ok(response);
+
         }catch (BadCredentialsException e) {
           e.printStackTrace();
           response.put("message", "잘못된 자격 증명입니다");
@@ -140,6 +140,12 @@ public class AuthService {
         }
     }
 
+    /*
+     * 유저 회원가입 로직
+     *
+     * @param requestSaveUserDto
+     * @return CommonResponseDto
+     */
     @Transactional
     public CommonResponseDto userSignup(RequestSaveUserDto requestSaveUserDto) {
       if (authRepository.existsByUserId(requestSaveUserDto.getUserId())) {
@@ -176,6 +182,12 @@ public class AuthService {
               .build();
     }
 
+    /*
+     * 메이트 회원가입 로직
+     *
+     * @param requestMateDto
+     * @return CommonResponseDto
+     */
     @Transactional
     public CommonResponseDto mateSignup(RequestSaveMateDto requestMateDto) {
         if (mateRepository.existsByMateId(requestMateDto.getMateId())) {
@@ -191,6 +203,9 @@ public class AuthService {
         else
           gender = Gender.WOMEN;
 
+        // 주민등록번호 암호화
+        String encryptNum = aesUtil.encrypt(requestMateDto.getRegistrationNum());
+
         MateEntity mate = MateEntity.builder()
                 .mateId(requestMateDto.getMateId())
                 .password(requestMateDto.getPassword())
@@ -200,7 +215,7 @@ public class AuthService {
                 .address(requestMateDto.getAddress())
                 .gender(gender)
                 .roles(roles)
-                .registrationNum(requestMateDto.getRegistrationNum())
+                .registrationNum(encryptNum)
                 .isDeleted(null)
                 .build();
 
@@ -214,10 +229,12 @@ public class AuthService {
                 .build();
     }
 
-    // 로그아웃
+    /*
+     * 메이트 회원가입 로직
+     */
     @Transactional
     public void logout(String token){
-      redisTemplate.opsForValue().set("logout : "+ jwtTokenProvider.getIdByToken(token), "logout", Duration.ofSeconds(1800));
+      redisTemplate.opsForValue().set("logout : "+ jwtTokenProvider.getIdByToken(token), "logout", Duration.ofSeconds(600));
       redisTemplate.delete(jwtTokenProvider.getIdByToken(token));
       redisTemplate.delete("RF: " + jwtTokenProvider.getIdByToken(token));
     }
@@ -228,7 +245,7 @@ public class AuthService {
       String id = jwtTokenProvider.getIdByToken(token);
       String accessToken = checkByToken(id);
       if(redisTemplate.opsForValue().get("RF: " + id) != null){
-        redisTemplate.opsForValue().set(id, accessToken, Duration.ofSeconds(6000));
+        redisTemplate.opsForValue().set(id, accessToken, Duration.ofSeconds(3L));
         Map<String, String> response = new HashMap<>();
         response.put("access_token", accessToken);
         response.put("http_status", HttpStatus.CREATED.toString());
