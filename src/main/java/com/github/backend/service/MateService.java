@@ -67,14 +67,6 @@ public class MateService {
         mateCareHistoryRepository.save(mateCareHistory);
         careRepository.save(care);
 
-        ChatRoomEntity chatRoomEntity = ChatRoomEntity.builder()
-                .mateCid(mate.getMateCid())
-                .userCid(user.getUserCid())
-                .build();
-
-        chatRoomRepository.save(chatRoomEntity);
-
-
         return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build();
     }
 
