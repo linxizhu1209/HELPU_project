@@ -10,6 +10,7 @@ import org.mapstruct.factory.Mappers;
 public interface MateCaringMapper {
         MateCaringMapper INSTANCE = Mappers.getMapper(MateCaringMapper.class);
 
+        @Mapping(target="careCid",source="careCid")
         @Mapping(target="arrivalLoc",source="arrivalLoc")
         @Mapping(target="date",source="careDate")
         @Mapping(target="startTime",source="careDateTime")
