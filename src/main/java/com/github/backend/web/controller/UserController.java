@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -35,7 +36,7 @@ public class UserController {
     @Operation(summary = "유저 정보 수정하기", description = "유저 정보를 수정한다.")
     @PutMapping(value = "/userInfo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponseDto userInfo(
-            @RequestPart(name = "RequestUpdateDto") @Parameter(schema =@Schema(type = "string", format = "binary")) RequestUpdateDto requestUpdateDto,
+            @Valid @RequestPart(name = "RequestUpdateDto") RequestUpdateDto requestUpdateDto,
             @RequestPart(name = "userProfileImage", required = false) MultipartFile profileImages){
 
       log.info("[Put] 메이트 정보의 수정 요청이 들어왔습니다");
