@@ -47,7 +47,7 @@ public class ImageUploadService {
         PutObjectResult putObjectResult = amazonS3.putObject(new PutObjectRequest(
                 bucketName, changedName, byteArrayIs, metadata
         ).withCannedAcl(CannedAccessControlList.PublicRead));
-        log.info("[myProfileImageToS3] s3에 이미지가 업로드 되었습니다. resultUrl = ");
+        log.info("[myProfileImageToS3] s3에 이미지가 업로드 되었습니다.");
       } catch (IOException e){
         throw new ImageUploadException(e.getMessage());
       }
@@ -76,14 +76,15 @@ public class ImageUploadService {
 
       return newProfileImage;
     }
-    public void deleteImage(String productImagePath) {
-        String key = extractKey(productImagePath);
+    public void deleteImage(String s3ImagePath) {
+        String key = extractKey(s3ImagePath);
         DeleteObjectRequest deleteRequest = new DeleteObjectRequest(bucketName, key);
+
         amazonS3.deleteObject(deleteRequest);
     }
 
-    private String extractKey(String productImagePath){
-        String baseUrl = "https://" + bucketName + ".s3.amazonaws.com/";
-        return productImagePath.substring(baseUrl.length());
+    private String extractKey(String s3ImagePath){
+        String splitStr = ".com/";
+        return s3ImagePath.substring(s3ImagePath.lastIndexOf(splitStr) + splitStr.length());
     }
 }

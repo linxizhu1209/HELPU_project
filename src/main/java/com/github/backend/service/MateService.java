@@ -3,7 +3,6 @@ package com.github.backend.service;
 import com.github.backend.repository.*;
 import com.github.backend.service.exception.CommonException;
 import com.github.backend.service.exception.InvalidValueException;
-import com.github.backend.service.exception.NotFoundException;
 import com.github.backend.service.mapper.MateCaringMapper;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.mates.CaringDetailsDto;
@@ -26,13 +25,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Optional;
 
-import static com.github.backend.web.dto.apply.UserDto.careEntityToUserDto;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class MateService {
-
 
     private final PasswordEncoder passwordEncoder;
     private final ServiceApplyRepository careRepository;
@@ -41,7 +37,8 @@ public class MateService {
     private final RatingRepository ratingRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final AuthRepository authRepository;
-
+    private final ImageUploadService imageUploadService;
+    private final ProfileImageRepository profileImageRepository;
 
     @Transactional
     public CommonResponseDto applyCaring(Long careId, CustomMateDetails customMateDetails) {
@@ -157,12 +154,23 @@ public class MateService {
         log.info("[build] update mate = " + mate);
         mateRepository.save(mate);
 
-//      if(profileImages != null) {
-//          ProfileImageEntity uploadImages = imageUploadService.profileUploadImage(multipartFile);
-//          user.setProfileImage(uploadImages);
-//          authRepository.save(user);
-//          log.info("[profileImage] 메이트 프로필 이미지가 추가되었습니다. uploadedImages = " + uploadImages);
-//      }
+      if(profileImages != null) {
+          // 수정 전 이미 이미지 파일을 가지고 있는 경우
+          if(mate.getProfileImage() != null){
+            ProfileImageEntity preProfileImage = profileImageRepository.findById(
+                            mate.getProfileImage().getProfileImageCid())
+                            .orElseThrow(() -> new CommonException("프로필 이미지를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
+            // S3에 이미지 파일 삭제 처리 진행
+            imageUploadService.deleteImage(preProfileImage.getFileUrl());
+            // 이미지 파일 테이블에 정보도 삭제
+            profileImageRepository.deleteById(preProfileImage.getProfileImageCid());
+          }
+          //이미지 파일 추가 로직 진행
+          ProfileImageEntity uploadImages = imageUploadService.profileUploadImage(profileImages);
+          mate.setProfileImage(uploadImages);
+          mateRepository.save(mate);
+          log.info("[profileImage] 메이트 프로필 이미지가 추가되었습니다. uploadedImages = " + uploadImages);
+      }
         return CommonResponseDto.builder()
                 .code(200)
                 .message("메이트 정보가 성공적으로 변경되었습니다.")

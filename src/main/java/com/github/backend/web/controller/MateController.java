@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -129,7 +130,7 @@ public class MateController {
     @Operation(summary = "메이트 정보 수정하기", description = "메이트 정보를 수정한다.")
     @PutMapping(value = "/mateInfo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponseDto mateInfo(
-            @RequestPart(name = "requestUpdateDto") @Parameter(schema =@Schema(type = "string", format = "binary")) RequestUpdateDto requestUpdateDto,
+            @Valid @RequestPart(name = "requestUpdateDto") RequestUpdateDto requestUpdateDto,
             @RequestPart(name = "mateProfileImage", required = false) MultipartFile profileImages){
 
         log.info("[Put] 메이트 정보의 수정 요청이 들어왔습니다");
