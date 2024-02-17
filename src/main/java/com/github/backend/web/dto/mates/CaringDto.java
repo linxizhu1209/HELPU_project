@@ -12,6 +12,8 @@ import java.time.LocalTime;
 @Setter
 @Builder
 public class CaringDto {
+    @Schema(description = "동행 신청 고유 번호",example = "1")
+    private Long careCid;
     @Schema(description = "도움서비스 내용",example = "서울 OO병원 동행 서비스")
     private String content;
     @Schema(description = "동행 날짜",example = "2024-2-10")
