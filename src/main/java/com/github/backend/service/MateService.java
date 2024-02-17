@@ -46,17 +46,17 @@ public class MateService {
     @Transactional
     public CommonResponseDto applyCaring(Long careId, CustomMateDetails customMateDetails) {
         Long mateId = customMateDetails.getMate().getMateCid();
-        CareEntity care = careRepository.findById(careId).orElseThrow();
-        MateEntity mate = mateRepository.findById(mateId).orElseThrow();
+        CareEntity care = careRepository.findById(careId).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
+        MateEntity mate = mateRepository.findById(mateId).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         // 만약 동일한 날짜 같은 시간대에 이미 신청한 도움이 있다면 신청불가능하게끔하기
         List<MateCareHistoryEntity> mateCareHistoryEntities = mateCareHistoryRepository.findAllByMateAndMateCareStatus(mate, MateCareStatus.IN_PROGRESS);
         List<CareEntity> careEntities = mateCareHistoryEntities.stream().map(MateCareHistoryEntity::getCare).toList();
         for (CareEntity caring : careEntities) {
             if (caring.getCareDate().equals(care.getCareDate())) {
-                return CommonResponseDto.builder().code(404).success(false).message("이미 같은 날짜에 신청한 도움이 있어, 신청이 불가능합니다!").build();
+            throw new CommonException("해당날짜에 이미 지원한 도움이 있습니다.", ErrorCode.BAD_REQUEST_RESPONSE);
             }
         }
-        UserEntity user = authRepository.findById(care.getUser().getUserCid()).orElseThrow();
+        UserEntity user = authRepository.findById(care.getUser().getUserCid()).orElseThrow(()->new CommonException("지원하신 도움신청건의 사용자를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         care.setMate(mate);
         care.setCareStatus(CareStatus.IN_PROGRESS);
 //        String messageContent = care.getContent + "가 매칭되었습니다!";
@@ -79,7 +79,7 @@ public class MateService {
     }
 
     public CommonResponseDto finishCaring(Long careCid, CustomMateDetails customMateDetails) {
-        CareEntity care = careRepository.findById(careCid).orElseThrow();
+        CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         care.setCareStatus(CareStatus.HELP_DONE);
         MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care, customMateDetails.getMate());
         mateCareHistory.setMateCareStatus(MateCareStatus.HELP_DONE);
@@ -90,7 +90,7 @@ public class MateService {
 
 
     public CommonResponseDto cancelCaring(Long careCid, CustomMateDetails customMateDetails) {
-        CareEntity care = careRepository.findById(careCid).orElseThrow();
+        CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         care.setCareStatus(CareStatus.WAITING);
         care.setMate(null);
         MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care, customMateDetails.getMate());
@@ -110,7 +110,7 @@ public class MateService {
 
     @Transactional
     public List<CaringDto> viewApplyList(String careStatus,CustomMateDetails customMateDetails) {
-        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow();
+        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         MateCareStatus mateCareStatus;
             if (careStatus.equalsIgnoreCase("IN_PROGRESS")) {
                 mateCareStatus = MateCareStatus.IN_PROGRESS;
@@ -144,7 +144,7 @@ public class MateService {
             throw new CommonException("아이디가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE);
         }
 
-        MateEntity mate = mateRepository.findById(requestUpdateDto.getCid()).orElseThrow();
+        MateEntity mate = mateRepository.findById(requestUpdateDto.getCid()).orElseThrow(() -> new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         if (requestUpdateDto.getPassword() != null) {
             requestUpdateDto.setPassword(passwordEncoder.encode(requestUpdateDto.getPassword()));
             mate.setEmail(requestUpdateDto.getEmail());
@@ -171,7 +171,7 @@ public class MateService {
     }
 
     public ResponseMyInfoDto findByMate(CustomMateDetails customMateDetails) {
-        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow(() -> new NotFoundException("존재하지 않는 메이트입니다."));
+        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow(() -> new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         return ResponseMyInfoDto.builder()
                 .cid(mate.getMateCid())
                 .name(mate.getName())
@@ -182,7 +182,7 @@ public class MateService {
     }
 
     public CaringDetailsDto viewCareDetail(Long careCid) {
-        CareEntity care = careRepository.findById(careCid).orElseThrow();
+        CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         return CaringDetailsDto.builder().date(care.getCareDate()).startTime(care.getCareDateTime())
                 .finishTime(care.getRequiredTime()).arrivalLoc(care.getArrivalLoc())
                 .gender(care.getGender()).cost(care.getCost()).careCid(careCid)
@@ -210,8 +210,7 @@ public class MateService {
     }
 
     public CommonResponseDto completePayment(Long careCid, boolean isCompletedPayment) {
-
-      CareEntity care = careRepository.findById(careCid).orElseThrow();
+      CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
       if (isCompletedPayment) {
         care.setCareStatus(CareStatus.COMPLETE_PAYMENT);
       } else {
@@ -222,20 +221,6 @@ public class MateService {
       }
       careRepository.save(care);
       return CommonResponseDto.builder().code(200).success(true).message("결제 상태가 성공적으로 변경되었습니다!").build();
-    }
-
-    /*
-    * 현재 적용중인 케어시스템 중에서 메이트 조회
-    *
-    */
-    public Long findByCaringMateCid(Long mateCid) {
-      CareEntity checkMates = careRepository.findByMateCid(mateCid).orElseThrow(() -> new CommonException("해당 케어서비스의 메이트가 아닙니다."));
-      return checkMates.getCareCid();
-    }
-
-
-    public MateEntity findByCid(long mateCid) {
-        return mateRepository.findById(mateCid).orElseThrow(() -> new CommonException("메이트가 존재하지 않습니다."));
     }
 }
 

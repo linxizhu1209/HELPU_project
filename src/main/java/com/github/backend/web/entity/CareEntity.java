@@ -61,7 +61,7 @@ public class CareEntity extends BaseEntity{
     @JoinColumn(name = "user_cid", referencedColumnName = "user_cid")
     private UserEntity user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "mate_cid", referencedColumnName = "mate_cid")
     private MateEntity mate;
 
