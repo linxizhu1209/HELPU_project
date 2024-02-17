@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -24,6 +25,7 @@ public class UserProceedingDto {
     private String content;
     private String Date;
     private String Location;
+    private Long careCid;
 
 
 
@@ -34,9 +36,8 @@ public class UserProceedingDto {
         List<UserProceedingDto> proceedingService = new ArrayList<>();
         for (CareEntity careEntity : careList) {
 
-            Hibernate.initialize(careEntity.getMate());
-
             UserProceedingDto userProceedingDto = UserProceedingDto.builder()
+                    .careCid(careEntity.getCareCid())
                     .mateName(careEntity.getMate().getMateId())
                     .Location(careEntity.getDepartureLoc())
                     .content(careEntity.getContent())
@@ -44,6 +45,9 @@ public class UserProceedingDto {
                     .build();
             proceedingService.add(userProceedingDto);
         }
+
+        proceedingService.sort(Comparator.comparing(UserProceedingDto::getCareCid).reversed());
+
         return proceedingService;
     }
 
