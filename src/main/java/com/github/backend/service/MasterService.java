@@ -1,9 +1,11 @@
 package com.github.backend.service;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import com.github.backend.config.security.util.AESUtil;
 import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.MateRepository;
 import com.github.backend.repository.RolesRepository;
+import com.github.backend.service.exception.CommonException;
 import com.github.backend.service.mapper.MateMapper;
 import com.github.backend.service.mapper.UserMapper;
 import com.github.backend.web.dto.CommonResponseDto;
@@ -15,6 +17,7 @@ import com.github.backend.web.dto.master.MateDto;
 import com.github.backend.web.entity.MateEntity;
 import com.github.backend.web.entity.RolesEntity;
 import com.github.backend.web.entity.UserEntity;
+import com.github.backend.web.entity.enums.ErrorCode;
 import com.github.backend.web.entity.enums.MateStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +38,7 @@ public class MasterService {
 
     // 메이트 부분
     public CommonResponseDto approveMate(Long mateCid) {
-        MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
+        MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         mate.setMateStatus(MateStatus.COMPLETE);
         String messageContent = mate.getName()+"님의 메이트 인증이 허가되었습니다! 로그인할 수 있습니다. ";
         String phoneNum = mate.getPhoneNumber();
@@ -46,7 +49,7 @@ public class MasterService {
 
 
     public CommonResponseDto unapprovedMate(Long mateCid, UnapprovedMateDto unapprovedMateDto) {
-        MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
+        MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         mate.setMateStatus(MateStatus.FAILED);
         String messageContent = mate.getName()+"님의 메이트 인증이 거부되었습니다! 사유를 확인하시고, 재신청해주세요." +
                 " 미승인 사유 : "+unapprovedMateDto.getUnapprovedReason();
@@ -64,7 +67,7 @@ public class MasterService {
     }
 
     public MateDetailDto findMate(Long mateCid) {
-        MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
+        MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
 
         String decryptNum = maskRegistrationNumber(aesUtil.decrypt(mate.getRegistrationNum()));
 
@@ -80,7 +83,7 @@ public class MasterService {
     }
 
     public CommonResponseDto blacklistingMate(boolean isBlacklisted, Long mateCid) {
-            MateEntity mate = mateRepository.findById(mateCid).orElseThrow();
+            MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
             mate.setBlacklisted(isBlacklisted);
             mateRepository.save(mate);
         return CommonResponseDto.builder().code(200).success(true).message("블랙리스트 요청이 성공적으로 처리됐습니다.").build();
@@ -95,7 +98,7 @@ public class MasterService {
     }
 
     public CommonResponseDto blacklistingUser(boolean isBlacklisted,Long userCid) {
-            UserEntity user = authRepository.findById(userCid).orElseThrow();
+            UserEntity user = authRepository.findById(userCid).orElseThrow(()->new CommonException("해당 사용자를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
             user.setBlacklisted(isBlacklisted);
             authRepository.save(user);
 
@@ -104,7 +107,7 @@ public class MasterService {
 
 
     public UserDetailDto findUser(Long userCid) {
-        UserEntity user = authRepository.findById(userCid).orElseThrow();
+        UserEntity user = authRepository.findById(userCid).orElseThrow(()-> new CommonException("해당 사용자를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         return UserDetailDto.builder()
                 .userId(user.getUserId())
                 .userGender(user.getGender())
