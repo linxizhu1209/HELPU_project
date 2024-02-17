@@ -181,6 +181,7 @@ public class MateService {
                 .build();
     }
 
+    @Transactional
     public CaringDetailsDto viewCareDetail(Long careCid) {
         CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         return CaringDetailsDto.builder().date(care.getCareDate()).startTime(care.getCareDateTime())
@@ -189,11 +190,13 @@ public class MateService {
                 .content(care.getContent()).userId(care.getUser().getUserId()).build();
     }
 
+    @Transactional
     public MainPageDto countWaitingCare() {
         int count = careRepository.countByCareStatus(CareStatus.WAITING);
         return new MainPageDto(count);
     }
 
+    @Transactional
     public MyPageDto countCareStatus(CustomMateDetails customMateDetails) {
         MateEntity mate = customMateDetails.getMate();
         int waitingCount = careRepository.countByCareStatus(CareStatus.WAITING);
@@ -209,6 +212,7 @@ public class MateService {
                 .cancelCount(cancelCount).mateRating(mateRating).build();
     }
 
+    @Transactional
     public CommonResponseDto completePayment(Long careCid, boolean isCompletedPayment) {
       CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
       if (isCompletedPayment) {
