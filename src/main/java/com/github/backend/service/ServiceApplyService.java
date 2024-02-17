@@ -17,6 +17,7 @@ import com.github.backend.web.entity.UserEntity;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,8 @@ public class ServiceApplyService {
     private final MateRepository mateRepository;
     private final RatingRepository ratingRepository;
     private final ChatRoomService chatRoomService;
+
+    @Transactional
     public CreatedChatRoomDto applyService(ServiceApplyDto serviceApplyDto, CustomUserDetails customUserDetails) {
         UserEntity userEntity = findById(customUserDetails);
 

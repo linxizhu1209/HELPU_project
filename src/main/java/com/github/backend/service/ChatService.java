@@ -1,8 +1,10 @@
 package com.github.backend.service;
 
 
+import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.ChatRepository;
 import com.github.backend.repository.ChatRoomRepository;
+import com.github.backend.repository.MateRepository;
 import com.github.backend.web.dto.chatDto.ChatMessageRequestDto;
 
 import com.github.backend.web.entity.*;
@@ -18,16 +20,16 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRepository chatRepository;
     private final SimpMessagingTemplate messagingTemplate;
-
+    private final AuthRepository authRepository;
+    private final MateRepository mateRepository;
     @Transactional
     public void sendMessage(ChatMessageRequestDto message,Long roomId, String sender) {
         ChatRoomEntity chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
-
-
-        UserEntity senderUser = chatRoom.getUser();
-        MateEntity senderMate = chatRoom.getMate();
+        // sender는 유저/메이트의 id임
+        UserEntity senderUser = authRepository.findById(chatRoom.getUserCid()).orElseThrow();
+        MateEntity senderMate = mateRepository.findById(chatRoom.getMateCid()).orElseThrow();
 
         ChatEntity chatMessage;
 
@@ -36,14 +38,14 @@ public class ChatService {
             chatMessage = ChatEntity.builder()
                     .content(message.getMessage())
                     .sender(sender)
-                    .chatRoom(chatRoom)
+                    .chatRoomCid(chatRoom.getChatRoomCid())
                     .build();
         } else if (senderMate.getMateId().equals(sender)) {
             // 메시지를 보낸 사람이 Mate인 경우 처리
             chatMessage = ChatEntity.builder()
                     .content(message.getMessage())
                     .sender(sender)
-                    .chatRoom(chatRoom)
+                    .chatRoomCid(chatRoom.getChatRoomCid())
                     .build();
         } else {
             throw new IllegalArgumentException("메시지를 보낸 사용자를 찾을 수 없습니다.");

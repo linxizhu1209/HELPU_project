@@ -24,17 +24,15 @@ public class ChatEntity extends BaseEntity{
     private String message;
 
 
-    @JsonBackReference
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="chat_room_cid")
-    private ChatRoomEntity chatRoom;
+    @Column(name="chat_room_cid")
+    private Long chatRoomCid;
 
     private String sender;
 
     @Builder
-    public ChatEntity(String content, ChatRoomEntity chatRoom, String sender) {
+    public ChatEntity(String content, Long chatRoomCid, String sender) {
         this.message = content;
-        this.chatRoom = chatRoom;
+        this.chatRoomCid = chatRoomCid;
         this.sender = sender;
     }
 }

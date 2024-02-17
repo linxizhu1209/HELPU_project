@@ -68,8 +68,8 @@ public class MateService {
         careRepository.save(care);
 
         ChatRoomEntity chatRoomEntity = ChatRoomEntity.builder()
-                .mate(mate)
-                .user(user)
+                .mateCid(mate.getMateCid())
+                .userCid(user.getUserCid())
                 .build();
 
         chatRoomRepository.save(chatRoomEntity);

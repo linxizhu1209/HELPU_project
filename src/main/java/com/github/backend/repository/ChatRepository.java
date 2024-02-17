@@ -12,5 +12,5 @@ import java.util.List;
 public interface ChatRepository extends JpaRepository<ChatEntity, Long> {
 
 
-    List<ChatEntity> findChatEntitiesByChatRoom(ChatRoomEntity chatRoom);
+    List<ChatEntity> findChatEntitiesByChatRoomCid(Long chatRoomCid);
 }

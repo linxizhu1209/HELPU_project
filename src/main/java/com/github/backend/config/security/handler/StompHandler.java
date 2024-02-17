@@ -27,11 +27,6 @@ public class StompHandler implements ChannelInterceptor {
             jwtTokenProvider.validationToken(result);
         }
 
-
-
-
         return message;
-
     }
-
 }
