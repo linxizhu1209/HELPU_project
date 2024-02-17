@@ -4,46 +4,31 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/care_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
-    username: root
-    password: 12341234
+    url: jdbc:mysql://localhost:3306/로컬DB스키마명?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username:
+    password:
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: qwer1234
-      repositories:
-        enabled: false
 
   jpa:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
 
   jwt:
-    secret: "9E6436E6EB6D3B111EBFC58691E53aaaaaaaaaaaaaaaabbbbb"
+    secret:
   default:
-    admin_id: supercoding
-    admin_pwd: admin1234
-
-  aes:
-    secret: "qrWkovCNhAToTFwnSMXXsy9aSfEOt9G2"
-
+    admin_id:
+    admin_pwd:
 
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8
   default-consumes-media-type: application/json;charset=UTF-8
   cache:
     disabled: true
-  packages-to-scan: com.github.backend.web.controller
+  packages-to-scan:
   api-docs:
-    path: /api-docs
-
-
+    path:
 
 
 logging:

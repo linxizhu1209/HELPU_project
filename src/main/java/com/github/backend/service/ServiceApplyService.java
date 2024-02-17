@@ -17,9 +17,7 @@ import com.github.backend.web.entity.MateRatingEntity;
 import com.github.backend.web.entity.UserEntity;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
-import com.github.backend.web.entity.enums.ErrorCode;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,8 +81,6 @@ public class ServiceApplyService {
         return new ArrayList<>();
     }
 
-
-    @Transactional
     public List<UserProceedingDto> findByServiceStatus2(CustomUserDetails customUserDetails, String status) {
         UserEntity userEntity = findById(customUserDetails);
         CareStatus careStatus;
@@ -102,7 +98,7 @@ public class ServiceApplyService {
     }
 
     public CommonResponseDto cancelByService(Long careCid) {
-        CareEntity careEntity = serviceApplyRepository.findById(careCid).orElseThrow(() -> new CommonException("해당 서비스를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
+        CareEntity careEntity = serviceApplyRepository.findById(careCid).orElseThrow(() -> new CommonException("해당 서비스를 찾을 수 없습니다."));
         careEntity.setCareStatus(CareStatus.CANCEL);
 
         serviceApplyRepository.save(careEntity);
@@ -134,10 +130,10 @@ public class ServiceApplyService {
 
     public CommonResponseDto updateByMateStarCount(Long careCid, Double starCount) {
         CareEntity careEntity = serviceApplyRepository.findById(careCid)
-                .orElseThrow(() -> new CommonException("해당 서비스를 찾을 수 업습니다.", ErrorCode.FAIL_RESPONSE));
+                .orElseThrow(() -> new CommonException("해당 서비스를 찾을 수 업습니다."));
 
         MateEntity mate = mateRepository.findById(careEntity.getMate().getMateCid())
-                .orElseThrow(() -> new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
+                .orElseThrow(() -> new CommonException("해당 메이트를 찾을 수 없습니다."));
 
         Optional<MateRatingEntity> mateRating = ratingRepository.findByMate(mate);
 
@@ -154,7 +150,7 @@ public class ServiceApplyService {
     }
 
     public UserEntity findById(CustomUserDetails customUserDetails){
-        return authRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow(() -> new CommonException("유저를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
+        return authRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow(() -> new CommonException("유저를 찾을 수 없습니다."));
     }
 
 
