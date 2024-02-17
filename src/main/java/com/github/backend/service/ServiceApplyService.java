@@ -4,6 +4,7 @@ import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.MateRepository;
 import com.github.backend.repository.RatingRepository;
 import com.github.backend.repository.ServiceApplyRepository;
+import com.github.backend.service.exception.CommonException;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.apply.ServiceApplyDto;
 import com.github.backend.web.dto.apply.UserDto;
@@ -97,8 +98,7 @@ public class ServiceApplyService {
     }
 
     public CommonResponseDto cancelByService(Long careCid) {
-        CareEntity careEntity = serviceApplyRepository.findById(careCid).orElseThrow();
-
+        CareEntity careEntity = serviceApplyRepository.findById(careCid).orElseThrow(() -> new CommonException("해당 서비스를 찾을 수 없습니다."));
         careEntity.setCareStatus(CareStatus.CANCEL);
 
         serviceApplyRepository.save(careEntity);
@@ -130,10 +130,10 @@ public class ServiceApplyService {
 
     public CommonResponseDto updateByMateStarCount(Long careCid, Double starCount) {
         CareEntity careEntity = serviceApplyRepository.findById(careCid)
-                .orElseThrow(() -> new EntityNotFoundException("해당 CareEntity를 찾을 수 업습니다."));
+                .orElseThrow(() -> new CommonException("해당 서비스를 찾을 수 업습니다."));
 
         MateEntity mate = mateRepository.findById(careEntity.getMate().getMateCid())
-                .orElseThrow(() -> new EntityNotFoundException("해당 MateEntity를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CommonException("해당 메이트를 찾을 수 없습니다."));
 
         Optional<MateRatingEntity> mateRating = ratingRepository.findByMate(mate);
 
@@ -150,8 +150,7 @@ public class ServiceApplyService {
     }
 
     public UserEntity findById(CustomUserDetails customUserDetails){
-        return authRepository.findById(customUserDetails.getUser().getUserCid())
-                .orElseThrow(() -> new EntityNotFoundException("해당 UserEntity를 찾을 수 없습니다."));
+        return authRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow(() -> new CommonException("유저를 찾을 수 없습니다."));
     }
 
 
