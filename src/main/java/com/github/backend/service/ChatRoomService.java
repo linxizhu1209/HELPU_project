@@ -16,7 +16,10 @@ import org.mapstruct.control.MappingControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -31,11 +34,14 @@ public class ChatRoomService {
     private final AuthRepository authRepository;
     private final MateRepository mateRepository;
 
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd. a h:mm");
+
+
     @Transactional
     public Long createRoom(CareEntity care){
         log.info("채팅방 생성 요청 들어왔습니다.");
-        ChatRoomEntity chatRoom = ChatRoomEntity.builder().careCid(care.getCareCid()).build();
-        ChatRoomEntity newChatRoom = chatRoomRepository.save(chatRoom);
+
+        ChatRoomEntity newChatRoom = chatRoomRepository.save(ChatRoomEntity.builder().careCid(care.getCareCid()).build());
         return newChatRoom.getChatRoomCid();
     }
 
@@ -75,11 +81,16 @@ public class ChatRoomService {
 
         for (ChatRoomEntity chatRoom : chatRooms) {
             UserEntity user = authRepository.findById(chatRoom.getUserCid()).orElseThrow();
+            String formattedTime = chatRoom.getUpdatedAt().format(formatter);
             ChatRoomResponseDto chatRoomResponseDto = ChatRoomResponseDto.builder()
+                    .chatRoomCid(chatRoom.getChatRoomCid())
                     .name(user.getName())
+                    .time(formattedTime)
                     .build();
             chatRoomResponseDtos.add(chatRoomResponseDto);
         }
+
+        chatRoomResponseDtos.sort(Comparator.comparing(ChatRoomResponseDto::getTime).reversed());
         return chatRoomResponseDtos;
     }
 
@@ -91,11 +102,15 @@ public class ChatRoomService {
 
         for (ChatRoomEntity chatRoom : chatRooms) {
             MateEntity mate = mateRepository.findById(chatRoom.getMateCid()).orElseThrow();
+            String formattedTime = chatRoom.getUpdatedAt().format(formatter);
             ChatRoomResponseDto chatRoomResponseDto = ChatRoomResponseDto.builder()
+                    .chatRoomCid(chatRoom.getChatRoomCid())
                     .name(mate.getName())
+                    .time(formattedTime)
                     .build();
             chatRoomResponseDtos.add(chatRoomResponseDto);
         }
+        chatRoomResponseDtos.sort(Comparator.comparing(ChatRoomResponseDto::getTime).reversed());
         return chatRoomResponseDtos;
     }
 }
