@@ -25,10 +25,13 @@ public class ChatRoomEntity extends BaseEntity{
     @Schema(description = "채팅 고유 아이디")
     private Long chatRoomCid;
 
-
     @Column(name = "care_cid")
     @Schema(description = "채팅방과 연관된 도움cid")
     private Long careCid;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE)
+    private List<ChatEntity> chatMessageList;
 
     @Column(name ="user_cid")
     private Long userCid;
@@ -36,15 +39,9 @@ public class ChatRoomEntity extends BaseEntity{
     @Column(name="mate_cid")
     private Long mateCid;
 
-    @JsonIgnore
-    @Transient
-    private Map<String,String> chatMessageMap = new HashMap<>();
-    // 보낸 사람과, 메시지를 저장
 
 
-    public void setChatMessageMap(ChatEntity chat) {
-        this.chatMessageMap.put(chat.getSender(),chat.getMessage());
-    }
+
 }
 
 

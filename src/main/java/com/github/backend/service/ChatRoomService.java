@@ -65,7 +65,7 @@ public class ChatRoomService {
         }
         else{
             log.info("해당 채팅방의 채팅 이력을 보여줍니다.");
-            List<ChatEntity> chatList = chatRepository.findChatEntitiesByChatRoomCid(chatRoom.getChatRoomCid());
+            List<ChatEntity> chatList = chatRepository.findChatEntitiesByChatRoom(chatRoom);
             // 채팅 엔티티 -> 채팅 dto
             List<ChatMessageResponseDto> chatHistory = chatList.stream().map(ChatMapper.INSTANCE::chatEntityToDTO).toList();
             // 채팅 dto를 줄때, user와 mate를 나눠서 각각 주는게 나은가? .............
