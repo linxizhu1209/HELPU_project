@@ -24,4 +24,8 @@ public class CaringDto {
     private LocalTime finishTime;
     @Schema(description = "목적지",example = "00병원")
     private String arrivalLoc;
+    @Schema(description = "유저의 프로필 사진 이름",example="피카츄.png")
+    private String imagename;
+    @Schema(description = "유저 프로필사진 주소",example = "https://qewr.com")
+    private String imageAddress;
 }
