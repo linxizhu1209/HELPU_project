@@ -21,4 +21,8 @@ public class MyPageDto {
     private int cancelCount;
     @Schema(description = "메이트 별점",example = "4.5")
     private double mateRating;
+    @Schema(description = "메이트 프로필 사진 이름",example = "피카츄.png")
+    private String imageName;
+    @Schema(description = "메이트 프로필 사진 주소",example = "http://ddd.com")
+    private String imageAddress;
 }

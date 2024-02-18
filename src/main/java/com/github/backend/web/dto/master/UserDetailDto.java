@@ -20,4 +20,8 @@ public class UserDetailDto {
     private String email;
     @Schema(description = "사용자 성별",example = "MEN/WOMEN")
     private Gender userGender;
+    @Schema(description = "사용자 프로필 사진 이름",example = "피카츄.png")
+    private String imageName;
+    @Schema(description = "사용자 프로필 사진 주소",example = "http://ddd.com")
+    private String imageAddress;
 }

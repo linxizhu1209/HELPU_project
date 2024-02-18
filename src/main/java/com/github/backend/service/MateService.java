@@ -250,9 +250,19 @@ public class MateService {
         double mateRating = mateRatingOptional.map(mateRatingEntity ->
                         mateRatingEntity.getTotalRating() / (double) mateRatingEntity.getRatingCount())
                 .orElse(0.0); //
+        ProfileImageEntity profileImage =mate.getProfileImage();
+        String imageAddress = null;
+        String imageName = "Default";
+
+        if (profileImage != null) {
+            imageAddress = profileImage.getFileUrl();
+            imageName = profileImage.getFileExt();
+        }
+
         return MyPageDto.builder().waitingCount(waitingCount).
                 inProgressCount(inProgressCount).finishCount(finishCount)
-                .cancelCount(cancelCount).mateRating(mateRating).build();
+                .cancelCount(cancelCount).mateRating(mateRating)
+                .imageAddress(imageAddress).imageName(imageName).build();
     }
 
     @Transactional
