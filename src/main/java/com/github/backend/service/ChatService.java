@@ -15,6 +15,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
+
+
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -24,6 +27,7 @@ public class ChatService {
     private final SimpMessagingTemplate messagingTemplate;
     private final AuthRepository authRepository;
     private final MateRepository mateRepository;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd. a h:mm");
     @Transactional
     public void sendMessage(ChatMessageRequestDto message,Long roomId) {
         ChatRoomEntity chatRoom = chatRoomRepository.findById(roomId)
@@ -52,7 +56,9 @@ public class ChatService {
 
         if (chatMessage != null) {
             chatRepository.save(chatMessage);
-            // 채팅 메시지를 구독 중인 클라이언트에게 전송
+            String formattedTime = chatMessage.getCreatedAt().format(formatter);
+            message.setSendAt(formattedTime);
+
             messagingTemplate.convertAndSend("/queue/chat/message/" + chatRoom.getChatRoomCid(), message);
         }
     }
