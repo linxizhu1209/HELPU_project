@@ -99,33 +99,57 @@ public class MateService {
 
     @Transactional
     public List<CaringDto> viewApplyList(String careStatus,CustomMateDetails customMateDetails) {
-        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
+        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow(() -> new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         MateCareStatus mateCareStatus;
-            if (careStatus.equalsIgnoreCase("IN_PROGRESS")) {
-                mateCareStatus = MateCareStatus.IN_PROGRESS;
-            } else if (careStatus.equalsIgnoreCase("HELP_DONE")){
+        if (careStatus.equalsIgnoreCase("IN_PROGRESS")) {
+            mateCareStatus = MateCareStatus.IN_PROGRESS;
+        } else if (careStatus.equalsIgnoreCase("HELP_DONE")) {
             mateCareStatus = MateCareStatus.HELP_DONE;
-            }
-            else if(careStatus.equalsIgnoreCase("cancel")) {
+        } else if (careStatus.equalsIgnoreCase("cancel")) {
             mateCareStatus = MateCareStatus.CANCEL;
-            }
-            else {
+        } else {
             throw new InvalidValueException("상태를 잘못입력하였습니다. 다시 입력해주세요.");
-            }
+        }
         List<MateCareHistoryEntity> mateCareHistoryList = mateCareHistoryRepository.findAllByMateAndMateCareStatus(mate, mateCareStatus);
         List<CareEntity> careList = mateCareHistoryList.stream().map(MateCareHistoryEntity::getCare).toList();
-            return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
-
+        List<ProfileImageEntity> userImageList = careList.stream().map(careEntity -> careEntity.getUser().getProfileImage())
+                .map(profileImage -> Optional.ofNullable(profileImage).orElse(null)).toList();
+        // 도움을 신청한 유저에 해당하는 이미지 하나씩 불러와서 하나씩 넣어주기
+        List<CaringDto> caringDto = careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
+        for (int i = 0; i < caringDto.size(); i++) {
+            ProfileImageEntity profileImage = userImageList.get(i);
+            if (profileImage != null) {
+                caringDto.get(i).setImagename(userImageList.get(i).getFileExt());
+                caringDto.get(i).setImageAddress(userImageList.get(i).getFileUrl());
+            } else {
+                caringDto.get(i).setImagename("default");
+                caringDto.get(i).setImageAddress(null);
+            }
         }
+        return caringDto;
+    }
 
 
 
     // 신규요청 내역 조회하기(대기중인 도움들 전체 조회)
     public List<CaringDto> viewAllApplyList() {
         List<CareEntity> careList = careRepository.findAllByCareStatus(CareStatus.WAITING);
-        return careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
+        List<ProfileImageEntity> userImageList = careList.stream().map(careEntity -> careEntity.getUser().getProfileImage())
+                .map(profileImage -> Optional.ofNullable(profileImage).orElse(null)).toList();
+        // 도움을 신청한 유저에 해당하는 이미지 하나씩 불러와서 하나씩 넣어주기
+        List<CaringDto> caringDto = careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
+        for (int i = 0; i < caringDto.size(); i++) {
+            ProfileImageEntity profileImage = userImageList.get(i);
+            if (profileImage != null) {
+                caringDto.get(i).setImagename(userImageList.get(i).getFileExt());
+                caringDto.get(i).setImageAddress(userImageList.get(i).getFileUrl());
+            } else {
+                caringDto.get(i).setImagename("default");
+                caringDto.get(i).setImageAddress(null);
+            }
+        }
+        return caringDto;
     }
-
     @Transactional
     public CommonResponseDto updateInfo(RequestUpdateDto requestUpdateDto, MultipartFile profileImages) {
 
@@ -184,11 +208,30 @@ public class MateService {
     @Transactional
     public CaringDetailsDto viewCareDetail(Long careCid) {
         CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
-        return CaringDetailsDto.builder().date(care.getCareDate()).startTime(care.getCareDateTime())
-                .finishTime(care.getRequiredTime()).arrivalLoc(care.getArrivalLoc())
-                .gender(care.getGender()).cost(care.getCost()).careCid(careCid)
-                .content(care.getContent()).userId(care.getUser().getUserId()).build();
+        ProfileImageEntity profileImage = care.getUser().getProfileImage();
+        String imageAddress = null;
+        String imageName = "Default";
+
+        if (profileImage != null) {
+            imageAddress = profileImage.getFileUrl();
+            imageName = profileImage.getFileExt();
+        }
+
+        return CaringDetailsDto.builder()
+                .date(care.getCareDate())
+                .startTime(care.getCareDateTime())
+                .finishTime(care.getRequiredTime())
+                .arrivalLoc(care.getArrivalLoc())
+                .gender(care.getGender())
+                .cost(care.getCost())
+                .careCid(careCid)
+                .content(care.getContent())
+                .userId(care.getUser().getUserId())
+                .imageAddress(imageAddress)
+                .imageName(imageName)
+                .build();
     }
+
 
     @Transactional
     public MainPageDto countWaitingCare() {
@@ -207,9 +250,19 @@ public class MateService {
         double mateRating = mateRatingOptional.map(mateRatingEntity ->
                         mateRatingEntity.getTotalRating() / (double) mateRatingEntity.getRatingCount())
                 .orElse(0.0); //
+        ProfileImageEntity profileImage =mate.getProfileImage();
+        String imageAddress = null;
+        String imageName = "Default";
+
+        if (profileImage != null) {
+            imageAddress = profileImage.getFileUrl();
+            imageName = profileImage.getFileExt();
+        }
+
         return MyPageDto.builder().waitingCount(waitingCount).
                 inProgressCount(inProgressCount).finishCount(finishCount)
-                .cancelCount(cancelCount).mateRating(mateRating).build();
+                .cancelCount(cancelCount).mateRating(mateRating)
+                .imageAddress(imageAddress).imageName(imageName).build();
     }
 
     @Transactional

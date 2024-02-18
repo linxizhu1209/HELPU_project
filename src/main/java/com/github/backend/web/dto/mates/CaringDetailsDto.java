@@ -33,4 +33,8 @@ private Long cost;
 private String content;
 @Schema(description = "희망성별",example = "MEN/WOMEN")
 private Gender gender;
+@Schema(description = "유저의 프로필 사진 이름",example="피카츄.png")
+private String imageName;
+@Schema(description = "유저 프로필사진 주소",example = "https://qewr.com")
+private String imageAddress;
 }

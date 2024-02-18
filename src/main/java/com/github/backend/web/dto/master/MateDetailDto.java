@@ -24,4 +24,8 @@ public class MateDetailDto {
     private String registrationNum;
     @Schema(description = "메이트 인증상태",example = "PREPARING")
     private MateStatus mateStatus;
+    @Schema(description = "메이트 프로필 사진 이름",example = "피카츄.png")
+    private String imageName;
+    @Schema(description = "메이트 프로필 사진 주소",example = "http://ddd.com")
+    private String imageAddress;
 }

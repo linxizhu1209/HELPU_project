@@ -21,4 +21,9 @@ public class MateDto {
     private String mateName;
     @Schema(description = "블랙리스트 여부",example = "true")
     private boolean isBlacklisted;
+    @Schema(description = "메이트 프로필 사진 이름",example = "피카츄.png")
+    private String imageName;
+    @Schema(description = "메이트 프로필 사진 주소",example = "http://ddd.com")
+    private String imageAddress;
+
 }
