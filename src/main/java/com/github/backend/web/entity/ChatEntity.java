@@ -11,8 +11,19 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@EntityListeners(ChatEntity.ChatEntityListener.class)
 @Table(name = "chat_table")
 public class ChatEntity extends BaseEntity{
+
+    public static class ChatEntityListener {
+        @PrePersist
+        public void beforeSave(ChatEntity chat) {
+            if (chat.getChatRoom() != null) {
+                chat.getChatRoom().setUpdatedAt(LocalDateTime.now());
+            }
+        }
+    }
+
     @Id
     @Column(name = "chat_cid")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,12 +34,12 @@ public class ChatEntity extends BaseEntity{
     @Schema(description = "채팅내용", example = "응?")
     private String message;
 
-
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="chat_room_cid")
     private ChatRoomEntity chatRoom;
 
+    @Column(name="sender")
     private String sender;
 
     @Builder

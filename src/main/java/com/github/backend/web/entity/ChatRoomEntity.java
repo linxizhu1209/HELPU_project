@@ -1,12 +1,15 @@
 package com.github.backend.web.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -22,19 +25,23 @@ public class ChatRoomEntity extends BaseEntity{
     @Schema(description = "채팅 고유 아이디")
     private Long chatRoomCid;
 
-    @Column(name = "chat_room_name")
-    @Schema(description = "채팅방 이름")
-    private String chatRoomName;
+    @Column(name = "care_cid")
+    @Schema(description = "채팅방과 연관된 도움cid")
+    private Long careCid;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE)
     private List<ChatEntity> chatMessageList;
 
-    @ManyToOne
-    @JoinColumn(name = "user_cid")
-    private UserEntity user;
+    @Column(name ="user_cid")
+    private Long userCid;
 
-    @ManyToOne
-    @JoinColumn(name = "mate_cid")
-    private MateEntity mate;
+    @Column(name="mate_cid")
+    private Long mateCid;
+
+
+
+
 }
+
+

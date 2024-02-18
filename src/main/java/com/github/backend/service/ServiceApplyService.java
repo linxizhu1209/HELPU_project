@@ -44,6 +44,8 @@ public class ServiceApplyService {
     private final MateRepository mateRepository;
     private final RatingRepository ratingRepository;
     private final ChatRoomService chatRoomService;
+
+    @Transactional
     public CreatedChatRoomDto applyService(ServiceApplyDto serviceApplyDto, CustomUserDetails customUserDetails) {
         UserEntity userEntity = findById(customUserDetails);
 
