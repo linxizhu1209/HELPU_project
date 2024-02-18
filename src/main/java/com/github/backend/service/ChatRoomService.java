@@ -2,6 +2,7 @@ package com.github.backend.service;
 
 
 import com.github.backend.repository.*;
+import com.github.backend.service.exception.CommonException;
 import com.github.backend.service.mapper.ChatMapper;
 import com.github.backend.web.dto.chatDto.ChatMessageResponseDto;
 import com.github.backend.web.dto.chatDto.ChatRoomResponseDto;
@@ -9,38 +10,32 @@ import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.entity.*;
 import com.github.backend.web.entity.custom.CustomMateDetails;
 import com.github.backend.web.entity.custom.CustomUserDetails;
+import com.github.backend.web.entity.enums.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mapstruct.control.MappingControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class ChatRoomService {
-
     private final ChatRoomRepository chatRoomRepository;
     private final ServiceApplyRepository serviceApplyRepository;
     private final ChatRepository chatRepository;
     private final AuthRepository authRepository;
     private final MateRepository mateRepository;
-
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd. a h:mm");
 
 
     @Transactional
     public Long createRoom(CareEntity care){
         log.info("채팅방 생성 요청 들어왔습니다.");
-
         ChatRoomEntity newChatRoom = chatRoomRepository.save(ChatRoomEntity.builder().careCid(care.getCareCid()).build());
         return newChatRoom.getChatRoomCid();
     }
@@ -48,10 +43,10 @@ public class ChatRoomService {
     @Transactional
     public ResponseEntity enterChatRoom(Long chatRoomCid) {
         log.info("채팅방 입장 요청 들어왔습니다");
-        ChatRoomEntity chatRoom = chatRoomRepository.findById(chatRoomCid).orElseThrow();
+        ChatRoomEntity chatRoom = chatRoomRepository.findById(chatRoomCid).orElseThrow(() -> new CommonException("채팅방이 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE));
         if(chatRoom.getMateCid()==null){
             Long careCid = chatRoom.getCareCid();
-            CareEntity care = serviceApplyRepository.findById(careCid).orElseThrow();
+            CareEntity care = serviceApplyRepository.findById(careCid).orElseThrow(() -> new CommonException("해당 서비스가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE));
             UserEntity user = care.getUser();
             MateEntity mate = care.getMate();
             log.info("채팅 이력이 존재하지 않아, 채팅 참가자를 설정했습니다." +
@@ -66,9 +61,7 @@ public class ChatRoomService {
         else{
             log.info("해당 채팅방의 채팅 이력을 보여줍니다.");
             List<ChatEntity> chatList = chatRepository.findChatEntitiesByChatRoom(chatRoom);
-            // 채팅 엔티티 -> 채팅 dto
             List<ChatMessageResponseDto> chatHistory = chatList.stream().map(ChatMapper.INSTANCE::chatEntityToDTO).toList();
-            // 채팅 dto를 줄때, user와 mate를 나눠서 각각 주는게 나은가? .............
             return ResponseEntity.ok().body(chatHistory);
         }
     }

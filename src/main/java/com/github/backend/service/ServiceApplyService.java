@@ -18,7 +18,6 @@ import com.github.backend.web.entity.UserEntity;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
 import com.github.backend.web.entity.enums.ErrorCode;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;

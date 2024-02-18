@@ -5,13 +5,18 @@ import com.github.backend.repository.AuthRepository;
 import com.github.backend.repository.ChatRepository;
 import com.github.backend.repository.ChatRoomRepository;
 import com.github.backend.repository.MateRepository;
+import com.github.backend.service.exception.CommonException;
 import com.github.backend.web.dto.chatDto.ChatMessageRequestDto;
 
 import com.github.backend.web.entity.*;
+import com.github.backend.web.entity.enums.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.format.DateTimeFormatter;
+
 
 @Service
 @RequiredArgsConstructor
@@ -22,39 +27,39 @@ public class ChatService {
     private final SimpMessagingTemplate messagingTemplate;
     private final AuthRepository authRepository;
     private final MateRepository mateRepository;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd. a h:mm");
     @Transactional
-    public void sendMessage(ChatMessageRequestDto message,Long roomId, String sender) {
+    public void sendMessage(ChatMessageRequestDto message,Long roomId) {
         ChatRoomEntity chatRoom = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CommonException("채팅방을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
 
-        // sender는 유저/메이트의 id임
         UserEntity senderUser = authRepository.findById(chatRoom.getUserCid()).orElseThrow();
         MateEntity senderMate = mateRepository.findById(chatRoom.getMateCid()).orElseThrow();
 
         ChatEntity chatMessage;
 
-        if (senderUser.getUserId().equals(sender)) {
-            // 메시지를 보낸 사람이 User인 경우 처리
+        if (senderUser.getUserId().equals(message.getSender())) {
             chatMessage = ChatEntity.builder()
                     .content(message.getMessage())
-                    .sender(sender)
+                    .sender(message.getSender())
                     .chatRoom(chatRoom)
                     .build();
-        } else if (senderMate.getMateId().equals(sender)) {
-            // 메시지를 보낸 사람이 Mate인 경우 처리
+        } else if (senderMate.getMateId().equals(message.getSender())) {
             chatMessage = ChatEntity.builder()
                     .content(message.getMessage())
-                    .sender(sender)
+                    .sender(message.getSender())
                     .chatRoom(chatRoom)
                     .build();
         } else {
-            throw new IllegalArgumentException("메시지를 보낸 사용자를 찾을 수 없습니다.");
+            throw new CommonException("메시지를 보낸 사용자를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE);
         }
 
         if (chatMessage != null) {
-            chatRepository.save(chatMessage); // chatRepository.save()를 한 번만 호출
-            // 채팅 메시지를 구독 중인 클라이언트에게 전송
-            messagingTemplate.convertAndSend("/queue/chat/message/" + chatRoom.getChatRoomCid(), chatMessage);
+            chatRepository.save(chatMessage);
+            String formattedTime = chatMessage.getCreatedAt().format(formatter);
+            message.setSendAt(formattedTime);
+
+            messagingTemplate.convertAndSend("/queue/chat/message/" + chatRoom.getChatRoomCid(), message);
         }
     }
 
