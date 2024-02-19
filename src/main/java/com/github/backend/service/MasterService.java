@@ -22,8 +22,6 @@ import com.github.backend.web.entity.RolesEntity;
 import com.github.backend.web.entity.UserEntity;
 import com.github.backend.web.entity.enums.ErrorCode;
 import com.github.backend.web.entity.enums.MateStatus;
-import jakarta.transaction.TransactionScoped;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.User;
@@ -45,7 +43,6 @@ public class MasterService {
     private final RolesRepository rolesRepository;
     private final AESUtil aesUtil;
 
-    @Transactional
     public CommonResponseDto approveMate(Long mateCid) {
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         mate.setMateStatus(MateStatus.COMPLETE);
@@ -56,7 +53,6 @@ public class MasterService {
         return CommonResponseDto.builder().code(200).success(true).message("해당 메이트 인증요청을 승인했습니다.").build();
     }
 
-    @Transactional
     public CommonResponseDto unapprovedMate(Long mateCid, UnapprovedMateDto unapprovedMateDto) {
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         mate.setMateStatus(MateStatus.FAILED);
@@ -68,7 +64,7 @@ public class MasterService {
         return CommonResponseDto.builder().code(200).success(true).message("해당 메이트 인증요청을 미승인했습니다.").build();
     }
 
-    @Transactional
+
     public List<MateDto> findAllMateList() {
         List<MateEntity> mateList = mateRepository.findAll();
         List<ProfileImageEntity> mateImageList = mateList.stream().map(mateEntity -> mateEntity.getProfileImage())
@@ -89,7 +85,7 @@ public class MasterService {
      return mateListDtos;
     }
 
-    @Transactional
+
     public MateDetailDto findMate(Long mateCid) {
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
 
@@ -116,7 +112,7 @@ public class MasterService {
                 .build();
     }
 
-    @Transactional
+
     public CommonResponseDto blacklistingMate(boolean isBlacklisted, Long mateCid) {
             MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
             mate.setBlacklisted(isBlacklisted);
@@ -127,7 +123,7 @@ public class MasterService {
     /**
      * 밑에부터 사용자 관련 코드
      */
-    @Transactional
+
     public List<UserListDto> findAllUserList() {
         RolesEntity roles = rolesRepository.findByRolesName("ROLE_USER");
         List<UserEntity> userList = authRepository.findAllByRoles(roles);
@@ -148,7 +144,7 @@ public class MasterService {
 
         return userListDtos;
     }
-    @Transactional
+
     public CommonResponseDto blacklistingUser(boolean isBlacklisted,Long userCid) {
             UserEntity user = authRepository.findById(userCid).orElseThrow(()->new CommonException("해당 사용자를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
             user.setBlacklisted(isBlacklisted);
@@ -157,7 +153,7 @@ public class MasterService {
         return CommonResponseDto.builder().code(200).success(true).message("블랙리스트 요청이 성공적으로 처리됐습니다.").build();
     }
 
-    @Transactional
+
     public UserDetailDto findUser(Long userCid) {
         UserEntity user = authRepository.findById(userCid).orElseThrow(()-> new CommonException("해당 사용자를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         ProfileImageEntity profileImage =user.getProfileImage();
