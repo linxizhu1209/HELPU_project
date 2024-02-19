@@ -14,4 +14,6 @@ public interface MateCareHistoryRepository extends JpaRepository<MateCareHistory
     int countByMateCareStatusAndMate(MateCareStatus mateCareStatus,MateEntity mate);
 
     List<MateCareHistoryEntity> findAllByMateAndMateCareStatus(MateEntity mate, MateCareStatus mateCareStatus);
+
+    boolean existsByCareAndMateAndMateCareStatus(CareEntity care, MateEntity mate, MateCareStatus mateCareStatus);
 }

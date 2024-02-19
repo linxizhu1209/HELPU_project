@@ -60,8 +60,16 @@ public class MateService {
 //        String phoneNum = care.getUser().getPhoneNumber();
 //        sendMessageService.sendMessage(phoneNum,messageContent);
 
-        MateCareHistoryEntity mateCareHistory = MateCareHistoryEntity.builder().mate(mate).care(care).mateCareStatus(MateCareStatus.IN_PROGRESS).build();
-        mateCareHistoryRepository.save(mateCareHistory);
+        if(mateCareHistoryRepository.existsByCareAndMateAndMateCareStatus(care,mate,MateCareStatus.CANCEL)){
+            MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMateAndMateCareStatus(care,mate,MateCareStatus.CANCEL);
+            mateCareHistory.setMateCareStatus(MateCareStatus.IN_PROGRESS);
+            mateCareHistoryRepository.save(mateCareHistory);
+        }
+        else {
+            MateCareHistoryEntity mateCareHistory = MateCareHistoryEntity.builder().mate(mate).care(care).mateCareStatus(MateCareStatus.IN_PROGRESS).build();
+            mateCareHistoryRepository.save(mateCareHistory);
+        }
+
         careRepository.save(care);
 
         return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build();
