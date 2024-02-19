@@ -10,6 +10,7 @@ import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.entity.*;
 import com.github.backend.web.entity.custom.CustomMateDetails;
 import com.github.backend.web.entity.custom.CustomUserDetails;
+import com.github.backend.web.entity.enums.CareStatus;
 import com.github.backend.web.entity.enums.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,12 +42,16 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public ResponseEntity enterChatRoom(Long chatRoomCid) {
+    public ResponseEntity enterChatRoom(Long careCid) {
         log.info("채팅방 입장 요청 들어왔습니다");
-        ChatRoomEntity chatRoom = chatRoomRepository.findById(chatRoomCid).orElseThrow(() -> new CommonException("채팅방이 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE));
+        ChatRoomEntity chatRoom = chatRoomRepository.findByCareCid(careCid).orElseThrow(() -> new CommonException("careCid가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE));
+        CareEntity care = serviceApplyRepository.findById(careCid).orElseThrow(() -> new CommonException("해당 서비스가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE));
+        
+        if(care.getCareStatus() == CareStatus.WAITING){
+            return ResponseEntity.badRequest().body(CommonResponseDto.builder().code(400).success(false).message("대기 중인 서비스입니다.").build());
+        }
+
         if(chatRoom.getMateCid()==null){
-            Long careCid = chatRoom.getCareCid();
-            CareEntity care = serviceApplyRepository.findById(careCid).orElseThrow(() -> new CommonException("해당 서비스가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE));
             UserEntity user = care.getUser();
             MateEntity mate = care.getMate();
             log.info("채팅 이력이 존재하지 않아, 채팅 참가자를 설정했습니다." +
