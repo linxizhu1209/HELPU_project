@@ -67,22 +67,23 @@ public class MateService {
         return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build();
     }
 
+    @Transactional
     public CommonResponseDto finishCaring(Long careCid, CustomMateDetails customMateDetails) {
         CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         care.setCareStatus(CareStatus.HELP_DONE);
-        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care, customMateDetails.getMate());
+        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMateAndMateCareStatus(care, customMateDetails.getMate(), MateCareStatus.IN_PROGRESS);
         mateCareHistory.setMateCareStatus(MateCareStatus.HELP_DONE);
         careRepository.save(care);
         mateCareHistoryRepository.save(mateCareHistory);
         return CommonResponseDto.builder().code(200).success(true).message("도움이 완료되었습니다!").build();
     }
 
-
+    @Transactional
     public CommonResponseDto cancelCaring(Long careCid, CustomMateDetails customMateDetails) {
         CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         care.setCareStatus(CareStatus.WAITING);
         care.setMate(null);
-        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care, customMateDetails.getMate());
+        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMateAndMateCareStatus(care, customMateDetails.getMate(),MateCareStatus.IN_PROGRESS);
         mateCareHistory.setMateCareStatus(MateCareStatus.CANCEL);
         careRepository.save(care);
         mateCareHistoryRepository.save(mateCareHistory);
@@ -130,8 +131,7 @@ public class MateService {
     }
 
 
-
-    // 신규요청 내역 조회하기(대기중인 도움들 전체 조회)
+    @Transactional
     public List<CaringDto> viewAllApplyList() {
         List<CareEntity> careList = careRepository.findAllByCareStatus(CareStatus.WAITING);
         List<ProfileImageEntity> userImageList = careList.stream().map(careEntity -> careEntity.getUser().getProfileImage())
