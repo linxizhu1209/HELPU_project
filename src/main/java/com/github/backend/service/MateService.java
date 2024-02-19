@@ -160,13 +160,15 @@ public class MateService {
         MateEntity mate = mateRepository.findById(requestUpdateDto.getCid()).orElseThrow(() -> new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         if (requestUpdateDto.getPassword() != null) {
             requestUpdateDto.setPassword(passwordEncoder.encode(requestUpdateDto.getPassword()));
-            mate.setEmail(requestUpdateDto.getEmail());
             mate.setPassword(requestUpdateDto.getPassword());
-            mate.setPhoneNumber(requestUpdateDto.getPhoneNumber());
-        } else {
-            mate.setEmail(requestUpdateDto.getEmail());
+        }
+        if (requestUpdateDto.getPhoneNumber() != null){
             mate.setPhoneNumber(requestUpdateDto.getPhoneNumber());
         }
+        if(requestUpdateDto.getEmail() != null){
+            mate.setEmail(requestUpdateDto.getEmail());
+        }
+
         log.info("[build] update mate = " + mate);
         mateRepository.save(mate);
 

@@ -72,15 +72,17 @@ public class UserService implements UserDetailsService {
       }
 
       UserEntity user = authRepository.findById(requestUpdateDto.getCid()).get();
-      if(requestUpdateDto.getPassword() != null) {
-        requestUpdateDto.setPassword(passwordEncoder.encode(requestUpdateDto.getPassword()));
-        user.setEmail(requestUpdateDto.getEmail());
-        user.setPassword(requestUpdateDto.getPassword());
-        user.setPhoneNumber(requestUpdateDto.getPhoneNumber());
-      }else{
-        user.setEmail(requestUpdateDto.getEmail());
-        user.setPhoneNumber(requestUpdateDto.getPhoneNumber());
+      if (requestUpdateDto.getPassword() != null) {
+          requestUpdateDto.setPassword(passwordEncoder.encode(requestUpdateDto.getPassword()));
+          user.setPassword(requestUpdateDto.getPassword());
       }
+      if (requestUpdateDto.getPhoneNumber() != null){
+          user.setPhoneNumber(requestUpdateDto.getPhoneNumber());
+      }
+      if(requestUpdateDto.getEmail() != null){
+          user.setEmail(requestUpdateDto.getEmail());
+      }
+
       log.info("[build] update user = " + user);
       authRepository.save(user);
 
