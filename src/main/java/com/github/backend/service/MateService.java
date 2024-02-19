@@ -28,6 +28,7 @@ import java.util.Optional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class MateService {
 
     private final PasswordEncoder passwordEncoder;
@@ -35,12 +36,11 @@ public class MateService {
     private final MateRepository mateRepository;
     private final MateCareHistoryRepository mateCareHistoryRepository;
     private final RatingRepository ratingRepository;
-    private final ChatRoomRepository chatRoomRepository;
     private final AuthRepository authRepository;
     private final ImageUploadService imageUploadService;
     private final ProfileImageRepository profileImageRepository;
 
-    @Transactional
+
     public CommonResponseDto applyCaring(Long careId, CustomMateDetails customMateDetails) {
         Long mateId = customMateDetails.getMate().getMateCid();
         CareEntity care = careRepository.findById(careId).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
@@ -67,10 +67,11 @@ public class MateService {
         return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build();
     }
 
+
     public CommonResponseDto finishCaring(Long careCid, CustomMateDetails customMateDetails) {
         CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         care.setCareStatus(CareStatus.HELP_DONE);
-        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care, customMateDetails.getMate());
+        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMateAndMateCareStatus(care, customMateDetails.getMate(), MateCareStatus.IN_PROGRESS);
         mateCareHistory.setMateCareStatus(MateCareStatus.HELP_DONE);
         careRepository.save(care);
         mateCareHistoryRepository.save(mateCareHistory);
@@ -82,7 +83,7 @@ public class MateService {
         CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         care.setCareStatus(CareStatus.WAITING);
         care.setMate(null);
-        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMate(care, customMateDetails.getMate());
+        MateCareHistoryEntity mateCareHistory = mateCareHistoryRepository.findByCareAndMateAndMateCareStatus(care, customMateDetails.getMate(),MateCareStatus.IN_PROGRESS);
         mateCareHistory.setMateCareStatus(MateCareStatus.CANCEL);
         careRepository.save(care);
         mateCareHistoryRepository.save(mateCareHistory);
@@ -95,9 +96,7 @@ public class MateService {
                 .message("도움을 성공적으로 취소했습니다!").build();
     }
 
-    ;
 
-    @Transactional
     public List<CaringDto> viewApplyList(String careStatus,CustomMateDetails customMateDetails) {
         MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow(() -> new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         MateCareStatus mateCareStatus;
@@ -131,7 +130,6 @@ public class MateService {
 
 
 
-    // 신규요청 내역 조회하기(대기중인 도움들 전체 조회)
     public List<CaringDto> viewAllApplyList() {
         List<CareEntity> careList = careRepository.findAllByCareStatus(CareStatus.WAITING);
         List<ProfileImageEntity> userImageList = careList.stream().map(careEntity -> careEntity.getUser().getProfileImage())
@@ -150,7 +148,7 @@ public class MateService {
         }
         return caringDto;
     }
-    @Transactional
+
     public CommonResponseDto updateInfo(RequestUpdateDto requestUpdateDto, MultipartFile profileImages) {
 
         if (!mateRepository.existsById(requestUpdateDto.getCid())) {
@@ -207,7 +205,7 @@ public class MateService {
                 .build();
     }
 
-    @Transactional
+
     public CaringDetailsDto viewCareDetail(Long careCid) {
         CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         ProfileImageEntity profileImage = care.getUser().getProfileImage();
@@ -235,13 +233,12 @@ public class MateService {
     }
 
 
-    @Transactional
     public MainPageDto countWaitingCare() {
         int count = careRepository.countByCareStatus(CareStatus.WAITING);
         return new MainPageDto(count);
     }
 
-    @Transactional
+
     public MyPageDto countCareStatus(CustomMateDetails customMateDetails) {
         MateEntity mate = customMateDetails.getMate();
         int waitingCount = careRepository.countByCareStatus(CareStatus.WAITING);
@@ -267,7 +264,7 @@ public class MateService {
                 .imageAddress(imageAddress).imageName(imageName).build();
     }
 
-    @Transactional
+
     public CommonResponseDto completePayment(Long careCid, boolean isCompletedPayment) {
       CareEntity care = careRepository.findById(careCid).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
       if (isCompletedPayment) {

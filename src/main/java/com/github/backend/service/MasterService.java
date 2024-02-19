@@ -43,7 +43,6 @@ public class MasterService {
     private final RolesRepository rolesRepository;
     private final AESUtil aesUtil;
 
-    // 메이트 부분
     public CommonResponseDto approveMate(Long mateCid) {
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         mate.setMateStatus(MateStatus.COMPLETE);
@@ -53,7 +52,6 @@ public class MasterService {
 //        sendMessageService.sendMessage(phoneNum,messageContent);
         return CommonResponseDto.builder().code(200).success(true).message("해당 메이트 인증요청을 승인했습니다.").build();
     }
-
 
     public CommonResponseDto unapprovedMate(Long mateCid, UnapprovedMateDto unapprovedMateDto) {
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
@@ -65,7 +63,6 @@ public class MasterService {
 //        sendMessageService.sendMessage(phoneNum,messageContent);
         return CommonResponseDto.builder().code(200).success(true).message("해당 메이트 인증요청을 미승인했습니다.").build();
     }
-
 
 
     public List<MateDto> findAllMateList() {
@@ -87,6 +84,7 @@ public class MasterService {
 
      return mateListDtos;
     }
+
 
     public MateDetailDto findMate(Long mateCid) {
         MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
@@ -114,6 +112,7 @@ public class MasterService {
                 .build();
     }
 
+
     public CommonResponseDto blacklistingMate(boolean isBlacklisted, Long mateCid) {
             MateEntity mate = mateRepository.findById(mateCid).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
             mate.setBlacklisted(isBlacklisted);
@@ -121,8 +120,10 @@ public class MasterService {
         return CommonResponseDto.builder().code(200).success(true).message("블랙리스트 요청이 성공적으로 처리됐습니다.").build();
     }
 
+    /**
+     * 밑에부터 사용자 관련 코드
+     */
 
-    // 사용자 부분
     public List<UserListDto> findAllUserList() {
         RolesEntity roles = rolesRepository.findByRolesName("ROLE_USER");
         List<UserEntity> userList = authRepository.findAllByRoles(roles);

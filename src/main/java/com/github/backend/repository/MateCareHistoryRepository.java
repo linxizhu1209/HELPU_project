@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface MateCareHistoryRepository extends JpaRepository<MateCareHistoryEntity,Long> {
-    MateCareHistoryEntity findByCareAndMate(CareEntity care, MateEntity mate);
+    MateCareHistoryEntity findByCareAndMateAndMateCareStatus(CareEntity care, MateEntity mate, MateCareStatus mateCareStatus);
 
     int countByMateCareStatusAndMate(MateCareStatus mateCareStatus,MateEntity mate);
 
