@@ -6,8 +6,11 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
@@ -32,9 +35,14 @@ public class SwaggerConfig {
       SecurityRequirement addSecurityItem = new SecurityRequirement();
       addSecurityItem.addList("Authorization");
 
+      Server server = new Server();
+      server.setUrl("https://helpu-service.site"); // https://에 접근 가능하게 설정
+      server.setDescription("Default Server URL");
+
       return new OpenAPI()
               .components(new Components().addSecuritySchemes("Authorization", bearerAuth))
               .addSecurityItem(addSecurityItem)
-              .info(info);
+              .info(info)
+              .servers(List.of(server));
     }
 }

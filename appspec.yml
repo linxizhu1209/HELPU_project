@@ -6,11 +6,11 @@ files:
     overwrite: yes
 
 permissions:
-  - object: /
+  - object: /home/ubuntu/Backend/
     pattern: "**"
     owner: ubuntu
     group: ubuntu
-
+    mode: 755
 hooks:
   ApplicationStart:
     - location: deploy.sh
