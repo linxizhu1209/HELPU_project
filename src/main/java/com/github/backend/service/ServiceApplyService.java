@@ -11,10 +11,7 @@ import com.github.backend.web.dto.apply.UserDto;
 import com.github.backend.web.dto.apply.UserMyPageDto;
 import com.github.backend.web.dto.apply.UserProceedingDto;
 import com.github.backend.web.dto.chatDto.CreatedChatRoomDto;
-import com.github.backend.web.entity.CareEntity;
-import com.github.backend.web.entity.MateEntity;
-import com.github.backend.web.entity.MateRatingEntity;
-import com.github.backend.web.entity.UserEntity;
+import com.github.backend.web.entity.*;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
 import com.github.backend.web.entity.enums.ErrorCode;
@@ -119,18 +116,34 @@ public class ServiceApplyService {
         List<CareEntity> completed = serviceApplyRepository.findAllByUserAndCareStatus(userEntity, CareStatus.HELP_DONE);
         List<CareEntity> cancelled = serviceApplyRepository.findAllByUserAndCareStatus(userEntity, CareStatus.CANCEL);
 
+        ProfileImageEntity profileImage = userEntity.getProfileImage();
+
         long waitingCount = waiting.size();
         long proceedingCount = proceeding.size();
         long completedCount = completed.size();
         long cancelledCount = cancelled.size();
 
-        return UserMyPageDto.builder()
-                .userId(userId)
-                .waitingCount(waitingCount)
-                .proceedingCount(proceedingCount)
-                .completedCount(completedCount)
-                .cancelledCount(cancelledCount)
-                .build();
+        if (profileImage == null) {
+            return UserMyPageDto.builder()
+                    .userId(userId)
+                    .imageAddress(null)
+                    .imageName(null)
+                    .waitingCount(waitingCount)
+                    .proceedingCount(proceedingCount)
+                    .completedCount(completedCount)
+                    .cancelledCount(cancelledCount)
+                    .build();
+        } else {
+            return UserMyPageDto.builder()
+                    .userId(userId)
+                    .imageAddress(profileImage.getFileUrl())
+                    .imageName(profileImage.getFileExt())
+                    .waitingCount(waitingCount)
+                    .proceedingCount(proceedingCount)
+                    .completedCount(completedCount)
+                    .cancelledCount(cancelledCount)
+                    .build();
+        }
     }
 
     public CommonResponseDto updateByMateStarCount(Long careCid, Double starCount) {
