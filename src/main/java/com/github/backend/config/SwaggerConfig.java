@@ -35,14 +35,9 @@ public class SwaggerConfig {
       SecurityRequirement addSecurityItem = new SecurityRequirement();
       addSecurityItem.addList("Authorization");
 
-      Server server = new Server();
-      server.setUrl("https://helpu-service.site"); // https://에 접근 가능하게 설정
-      server.setDescription("Default Server URL");
-
       return new OpenAPI()
               .components(new Components().addSecuritySchemes("Authorization", bearerAuth))
               .addSecurityItem(addSecurityItem)
-              .info(info)
-              .servers(List.of(server));
+              .info(info);
     }
 }
