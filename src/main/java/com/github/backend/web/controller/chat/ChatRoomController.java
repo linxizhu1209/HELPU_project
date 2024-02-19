@@ -24,10 +24,10 @@ public class ChatRoomController {
 
     /** ChatRoom 입장(채팅방에서 대화시작) */
     @Operation(summary = "채팅방 입장, 이력", description = "첫 채팅방 입장시 채팅방에 정보를 주입합니다. 처음이 아닐 경우 채팅 이력을 반환합니다.")
-    @PutMapping("/{chatRoomCid}")
+    @PutMapping("/{careCid}")
     public ResponseEntity<?> chatRoom(
-            @PathVariable Long chatRoomCid){
-        return chatRoomService.enterChatRoom(chatRoomCid);
+            @PathVariable Long careCid){
+        return chatRoomService.enterChatRoom(careCid);
     }
 
 
