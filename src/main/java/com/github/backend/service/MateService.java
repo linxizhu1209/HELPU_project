@@ -39,7 +39,7 @@ public class MateService {
     private final AuthRepository authRepository;
     private final ImageUploadService imageUploadService;
     private final ProfileImageRepository profileImageRepository;
-
+    private final ChatRoomRepository chatRoomRepository;
 
     public CommonResponseDto applyCaring(Long careId, CustomMateDetails customMateDetails) {
         Long mateId = customMateDetails.getMate().getMateCid();
@@ -125,6 +125,9 @@ public class MateService {
         List<CaringDto> caringDto = careList.stream().map(MateCaringMapper.INSTANCE::CareEntityToDTO).toList();
         for (int i = 0; i < caringDto.size(); i++) {
             ProfileImageEntity profileImage = userImageList.get(i);
+            Long careCid = caringDto.get(i).getCareCid();
+            Long roomCid = chatRoomRepository.findByCareCid(careCid).getChatRoomCid();
+
             if (profileImage != null) {
                 caringDto.get(i).setImagename(userImageList.get(i).getFileExt());
                 caringDto.get(i).setImageAddress(userImageList.get(i).getFileUrl());
@@ -132,6 +135,7 @@ public class MateService {
                 caringDto.get(i).setImagename("default");
                 caringDto.get(i).setImageAddress(null);
             }
+            caringDto.get(i).setRoomCid(roomCid);
         }
         return caringDto;
     }
