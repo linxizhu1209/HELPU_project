@@ -21,5 +21,6 @@ public class ChatRoomResponseDto {
     @Schema(name="마지막 메시지 시간")
     private final String time;
 
+    private final String myId;
 
 }

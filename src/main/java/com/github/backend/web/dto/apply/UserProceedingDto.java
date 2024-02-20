@@ -29,6 +29,9 @@ public class UserProceedingDto {
     private String Location;
     private Long careCid;
     private Long roomCid;
+
+    private String myId;
+
     private String imageName;
     private String imageAddress;
 
@@ -40,7 +43,6 @@ public class UserProceedingDto {
             ProfileImageEntity profileImage = careEntity.getMate().getProfileImage();
             Long roomCid = chatRoomRepository.findByCareCid(careEntity.getCareCid()).getChatRoomCid();
 
-
             if(profileImage == null){
                 UserProceedingDto userProceedingDto = UserProceedingDto.builder()
                         .careCid(careEntity.getCareCid())
@@ -50,6 +52,7 @@ public class UserProceedingDto {
                         .imageName(null)
                         .imageAddress(null)
                         .Date(convertDateToString(careEntity.getCareDate(), careEntity.getCareDateTime(), careEntity.getRequiredTime()))
+                        .myId(careEntity.getUser().getUserId())
                         .roomCid(roomCid).build();
                 proceedingService.add(userProceedingDto);
             } else {
@@ -61,10 +64,10 @@ public class UserProceedingDto {
                         .imageAddress(profileImage.getFileUrl())
                         .imageName(profileImage.getFileExt())
                         .Date(convertDateToString(careEntity.getCareDate(), careEntity.getCareDateTime(), careEntity.getRequiredTime()))
+                        .myId(careEntity.getUser().getUserId())
                         .roomCid(roomCid).build();
                 proceedingService.add(userProceedingDto);
             }
-
         }
 
         proceedingService.sort(Comparator.comparing(UserProceedingDto::getCareCid).reversed());

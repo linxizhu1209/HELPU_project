@@ -83,6 +83,7 @@ public class ChatRoomService {
             ChatRoomResponseDto chatRoomResponseDto = ChatRoomResponseDto.builder()
                     .chatRoomCid(chatRoom.getChatRoomCid())
                     .name(user.getName())
+                    .myId(mate.getMateId())
                     .time(formattedTime)
                     .build();
             chatRoomResponseDtos.add(chatRoomResponseDto);
@@ -104,6 +105,7 @@ public class ChatRoomService {
             ChatRoomResponseDto chatRoomResponseDto = ChatRoomResponseDto.builder()
                     .chatRoomCid(chatRoom.getChatRoomCid())
                     .name(mate.getName())
+                    .myId(user.getUserId())
                     .time(formattedTime)
                     .build();
             chatRoomResponseDtos.add(chatRoomResponseDto);
