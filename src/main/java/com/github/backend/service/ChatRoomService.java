@@ -26,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@Transactional
 public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final ServiceApplyRepository serviceApplyRepository;
@@ -34,14 +35,12 @@ public class ChatRoomService {
     private final MateRepository mateRepository;
     //private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd. a h:mm");
 
-    @Transactional
     public Long createRoom(CareEntity care){
         log.info("채팅방 생성 요청 들어왔습니다.");
         ChatRoomEntity newChatRoom = chatRoomRepository.save(ChatRoomEntity.builder().careCid(care.getCareCid()).build());
         return newChatRoom.getChatRoomCid();
     }
 
-    @Transactional
     public ResponseEntity enterChatRoom(Long roomCid) {
         log.info("채팅방 입장 요청 들어왔습니다");
         ChatRoomEntity chatRoom = chatRoomRepository.findByChatRoomCid(roomCid);
