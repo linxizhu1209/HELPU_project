@@ -19,7 +19,7 @@ public class ChatRoomResponseDto {
     @Schema(name="채팅 상대방 이름")
     private final String name;
     @Schema(name="마지막 메시지 시간")
-    private final String time;
+    private final Long time;
 
     private final String myId;
 

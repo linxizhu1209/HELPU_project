@@ -12,6 +12,7 @@ import com.github.backend.web.entity.custom.CustomMateDetails;
 import com.github.backend.web.entity.custom.CustomUserDetails;
 import com.github.backend.web.entity.enums.CareStatus;
 import com.github.backend.web.entity.enums.ErrorCode;
+import com.github.backend.web.util.TimestampUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +32,7 @@ public class ChatRoomService {
     private final ChatRepository chatRepository;
     private final AuthRepository authRepository;
     private final MateRepository mateRepository;
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd. a h:mm");
-
+    //private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd. a h:mm");
 
     @Transactional
     public Long createRoom(CareEntity care){
@@ -79,7 +79,7 @@ public class ChatRoomService {
 
         for (ChatRoomEntity chatRoom : chatRooms) {
             UserEntity user = authRepository.findById(chatRoom.getUserCid()).orElseThrow();
-            String formattedTime = chatRoom.getUpdatedAt().format(formatter);
+            Long formattedTime = TimestampUtil.convertLocalDateTimeToTimestamp(chatRoom.getUpdatedAt());
             ChatRoomResponseDto chatRoomResponseDto = ChatRoomResponseDto.builder()
                     .chatRoomCid(chatRoom.getChatRoomCid())
                     .name(user.getName())
@@ -101,7 +101,7 @@ public class ChatRoomService {
 
         for (ChatRoomEntity chatRoom : chatRooms) {
             MateEntity mate = mateRepository.findById(chatRoom.getMateCid()).orElseThrow();
-            String formattedTime = chatRoom.getUpdatedAt().format(formatter);
+            Long formattedTime = TimestampUtil.convertLocalDateTimeToTimestamp(chatRoom.getUpdatedAt());
             ChatRoomResponseDto chatRoomResponseDto = ChatRoomResponseDto.builder()
                     .chatRoomCid(chatRoom.getChatRoomCid())
                     .name(mate.getName())
