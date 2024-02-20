@@ -2,6 +2,7 @@ package com.github.backend.web.dto.apply;
 
 import com.github.backend.repository.ChatRoomRepository;
 import com.github.backend.web.entity.CareEntity;
+import com.github.backend.web.entity.ProfileImageEntity;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,25 +29,45 @@ public class UserProceedingDto {
     private String Location;
     private Long careCid;
     private Long roomCid;
+
     private String myId;
+
+    private String imageName;
+    private String imageAddress;
+
 
 
     public static List<UserProceedingDto> careEntityToUserDto2(List<CareEntity> careList, ChatRoomRepository chatRoomRepository){
-
-
         List<UserProceedingDto> proceedingService = new ArrayList<>();
         for (CareEntity careEntity : careList) {
+            ProfileImageEntity profileImage = careEntity.getMate().getProfileImage();
             Long roomCid = chatRoomRepository.findByCareCid(careEntity.getCareCid()).getChatRoomCid();
 
-            UserProceedingDto userProceedingDto = UserProceedingDto.builder()
-                    .careCid(careEntity.getCareCid())
-                    .mateName(careEntity.getMate().getMateId())
-                    .Location(careEntity.getDepartureLoc())
-                    .content(careEntity.getContent())
-                    .Date(convertDateToString(careEntity.getCareDate(), careEntity.getCareDateTime(), careEntity.getRequiredTime()))
-                    .myId(careEntity.getUser().getUserId())
-                    .roomCid(roomCid).build();
-            proceedingService.add(userProceedingDto);
+            if(profileImage == null){
+                UserProceedingDto userProceedingDto = UserProceedingDto.builder()
+                        .careCid(careEntity.getCareCid())
+                        .mateName(careEntity.getMate().getMateId())
+                        .Location(careEntity.getDepartureLoc())
+                        .content(careEntity.getContent())
+                        .imageName(null)
+                        .imageAddress(null)
+                        .Date(convertDateToString(careEntity.getCareDate(), careEntity.getCareDateTime(), careEntity.getRequiredTime()))
+                        .myId(careEntity.getUser().getUserId())
+                        .roomCid(roomCid).build();
+                proceedingService.add(userProceedingDto);
+            } else {
+                UserProceedingDto userProceedingDto = UserProceedingDto.builder()
+                        .careCid(careEntity.getCareCid())
+                        .mateName(careEntity.getMate().getMateId())
+                        .Location(careEntity.getDepartureLoc())
+                        .content(careEntity.getContent())
+                        .imageAddress(profileImage.getFileUrl())
+                        .imageName(profileImage.getFileExt())
+                        .Date(convertDateToString(careEntity.getCareDate(), careEntity.getCareDateTime(), careEntity.getRequiredTime()))
+                        .myId(careEntity.getUser().getUserId())
+                        .roomCid(roomCid).build();
+                proceedingService.add(userProceedingDto);
+            }
         }
 
         proceedingService.sort(Comparator.comparing(UserProceedingDto::getCareCid).reversed());
