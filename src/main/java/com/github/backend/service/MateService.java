@@ -204,13 +204,26 @@ public class MateService {
 
     public ResponseMyInfoDto findByMate(CustomMateDetails customMateDetails) {
         MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow(() -> new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
-        return ResponseMyInfoDto.builder()
-                .cid(mate.getMateCid())
-                .name(mate.getName())
-                .id(mate.getMateId())
-                .email(mate.getEmail())
-                .phoneNumber(mate.getPhoneNumber())
-                .build();
+
+        if(mate.getProfileImage() == null){
+            return ResponseMyInfoDto.builder()
+                    .cid(mate.getMateCid())
+                    .name(mate.getName())
+                    .id(mate.getMateId())
+                    .email(mate.getEmail())
+                    .phoneNumber(mate.getPhoneNumber())
+                    .profileImage(null)
+                    .build();
+        }else{
+            return ResponseMyInfoDto.builder()
+                    .cid(mate.getMateCid())
+                    .name(mate.getName())
+                    .id(mate.getMateId())
+                    .email(mate.getEmail())
+                    .phoneNumber(mate.getPhoneNumber())
+                    .profileImage(mate.getProfileImage().getFileUrl())
+                    .build();
+        }
     }
 
 

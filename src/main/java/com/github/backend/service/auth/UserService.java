@@ -51,13 +51,25 @@ public class UserService implements UserDetailsService {
     public ResponseMyInfoDto findByUser(CustomUserDetails customUserDetails) {
         UserEntity user = authRepository.findById(customUserDetails.getUser().getUserCid()).orElseThrow(() -> new CommonException("userId: " + customUserDetails.getUser() + "를 데이터베이스에서 찾을 수 없습니다."));
 
-        return ResponseMyInfoDto.builder()
-                .cid(user.getUserCid())
-                .name(user.getName())
-                .id(user.getUserId())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
-                .build();
+        if(user.getProfileImage() == null){
+            return ResponseMyInfoDto.builder()
+                    .cid(user.getUserCid())
+                    .name(user.getName())
+                    .id(user.getUserId())
+                    .email(user.getEmail())
+                    .phoneNumber(user.getPhoneNumber())
+                    .profileImage(null)
+                    .build();
+        }else{
+            return ResponseMyInfoDto.builder()
+                    .cid(user.getUserCid())
+                    .name(user.getName())
+                    .id(user.getUserId())
+                    .email(user.getEmail())
+                    .phoneNumber(user.getPhoneNumber())
+                    .profileImage(user.getProfileImage().getFileUrl())
+                    .build();
+        }
     }
 
     @Transactional
