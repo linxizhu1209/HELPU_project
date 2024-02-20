@@ -1,9 +1,6 @@
 package com.github.backend.service;
 
-import com.github.backend.repository.AuthRepository;
-import com.github.backend.repository.MateRepository;
-import com.github.backend.repository.RatingRepository;
-import com.github.backend.repository.ServiceApplyRepository;
+import com.github.backend.repository.*;
 import com.github.backend.service.exception.CommonException;
 import com.github.backend.web.dto.CommonResponseDto;
 import com.github.backend.web.dto.apply.ServiceApplyDto;
@@ -40,7 +37,7 @@ public class ServiceApplyService {
     private final MateRepository mateRepository;
     private final RatingRepository ratingRepository;
     private final ChatRoomService chatRoomService;
-
+    private final ChatRoomRepository chatRoomRepository;
     @Transactional
     public CreatedChatRoomDto applyService(ServiceApplyDto serviceApplyDto, CustomUserDetails customUserDetails) {
         UserEntity userEntity = findById(customUserDetails);
@@ -90,11 +87,11 @@ public class ServiceApplyService {
         if (status.equalsIgnoreCase("proceeding")) {
             careStatus = CareStatus.IN_PROGRESS;
             List<CareEntity> careList = serviceApplyRepository.findAllByUserAndCareStatus(userEntity, careStatus);
-            return careEntityToUserDto2(careList);
+            return careEntityToUserDto2(careList,chatRoomRepository);
         } else if (status.equalsIgnoreCase("completed")) {
             careStatus = CareStatus.HELP_DONE;
             List<CareEntity> careList = serviceApplyRepository.findAllByUserAndCareStatus(userEntity, careStatus);
-            return careEntityToUserDto2(careList);
+            return careEntityToUserDto2(careList,chatRoomRepository);
         }
         return new ArrayList<>();
     }

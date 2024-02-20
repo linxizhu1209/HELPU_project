@@ -1,5 +1,6 @@
 package com.github.backend.web.dto.apply;
 
+import com.github.backend.repository.ChatRoomRepository;
 import com.github.backend.web.entity.CareEntity;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -26,15 +27,16 @@ public class UserProceedingDto {
     private String Date;
     private String Location;
     private Long careCid;
+    private Long roomCid;
 
 
 
-
-    public static List<UserProceedingDto> careEntityToUserDto2(List<CareEntity> careList){
+    public static List<UserProceedingDto> careEntityToUserDto2(List<CareEntity> careList, ChatRoomRepository chatRoomRepository){
 
 
         List<UserProceedingDto> proceedingService = new ArrayList<>();
         for (CareEntity careEntity : careList) {
+            Long roomCid = chatRoomRepository.findByCareCid(careEntity.getCareCid()).getChatRoomCid();
 
             UserProceedingDto userProceedingDto = UserProceedingDto.builder()
                     .careCid(careEntity.getCareCid())
@@ -42,7 +44,7 @@ public class UserProceedingDto {
                     .Location(careEntity.getDepartureLoc())
                     .content(careEntity.getContent())
                     .Date(convertDateToString(careEntity.getCareDate(), careEntity.getCareDateTime(), careEntity.getRequiredTime()))
-                    .build();
+                    .roomCid(roomCid).build();
             proceedingService.add(userProceedingDto);
         }
 

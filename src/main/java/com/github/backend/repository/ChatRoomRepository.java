@@ -19,5 +19,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, Long> 
 
     List<ChatRoomEntity> findAllByMateCid(Long mateCid);
 
-    Optional<ChatRoomEntity> findByCareCid(Long careCid);
+    ChatRoomEntity findByChatRoomCid(Long roomCid);
+    ChatRoomEntity findByCareCid(Long careCid);
+
 }

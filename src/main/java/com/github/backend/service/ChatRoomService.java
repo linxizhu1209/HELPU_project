@@ -42,11 +42,11 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public ResponseEntity enterChatRoom(Long careCid) {
+    public ResponseEntity enterChatRoom(Long roomCid) {
         log.info("채팅방 입장 요청 들어왔습니다");
-        ChatRoomEntity chatRoom = chatRoomRepository.findByCareCid(careCid).orElseThrow(() -> new CommonException("careCid가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE));
-        CareEntity care = serviceApplyRepository.findById(careCid).orElseThrow(() -> new CommonException("해당 서비스가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE));
-        
+        ChatRoomEntity chatRoom = chatRoomRepository.findByChatRoomCid(roomCid);
+        CareEntity care = serviceApplyRepository.findById(chatRoom.getCareCid()).orElseThrow(() -> new CommonException("해당 서비스가 존재하지 않습니다.", ErrorCode.FAIL_RESPONSE));
+
         if(care.getCareStatus() == CareStatus.WAITING){
             return ResponseEntity.badRequest().body(CommonResponseDto.builder().code(400).success(false).message("대기 중인 서비스입니다.").build());
         }
