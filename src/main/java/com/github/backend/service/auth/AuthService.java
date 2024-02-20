@@ -109,13 +109,10 @@ public class AuthService {
             if(mates.isBlacklisted())
               throw new CommonException("해당 메이트는 관리자에게 문의하십시오. helpUAdmin@admin.com", ErrorCode.BAD_REQUEST_RESPONSE);
 
-            if(mates.getMateStatus().equals(MateStatus.PREPARING))
-              throw new CommonException("관리자의 허가가 필요한 아이디 입니다.", ErrorCode.BAD_REQUEST_RESPONSE);
-
             accessToken = jwtTokenProvider.createAccessToken(2, mates.getMateId());
             refreshToken = jwtTokenProvider.createRefreshToken(2, mates.getMateId());
             rolesName = mates.getRoles().getRolesName();
-
+            response.put("register_status", mates.getMateStatus().toString());
           }
 
           // Redis에 token 적용
