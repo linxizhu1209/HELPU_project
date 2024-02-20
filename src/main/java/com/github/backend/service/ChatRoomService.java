@@ -83,7 +83,7 @@ public class ChatRoomService {
             Long formattedTime = TimestampUtil.convertLocalDateTimeToTimestamp(chatRoom.getUpdatedAt());
             ChatRoomResponseDto chatRoomResponseDto = null;
 
-            if(mate.getProfileImage() == null){
+            if(user.getProfileImage() == null){
               chatRoomResponseDto = ChatRoomResponseDto.builder()
                       .chatRoomCid(chatRoom.getChatRoomCid())
                       .name(user.getName())
@@ -96,7 +96,7 @@ public class ChatRoomService {
                       .chatRoomCid(chatRoom.getChatRoomCid())
                       .name(user.getName())
                       .myId(mate.getMateId())
-                      .profileImage(mate.getProfileImage().getFileUrl())
+                      .profileImage(user.getProfileImage().getFileUrl())
                       .time(formattedTime)
                       .build();
             }
@@ -120,7 +120,7 @@ public class ChatRoomService {
             MateEntity mate = mateRepository.findById(chatRoom.getMateCid()).orElseThrow();
             Long formattedTime = TimestampUtil.convertLocalDateTimeToTimestamp(chatRoom.getUpdatedAt());
             ChatRoomResponseDto chatRoomResponseDto = null;
-            if(user.getProfileImage() == null){
+            if(mate.getProfileImage() == null){
               chatRoomResponseDto = ChatRoomResponseDto.builder()
                       .chatRoomCid(chatRoom.getChatRoomCid())
                       .name(mate.getName())
@@ -133,7 +133,7 @@ public class ChatRoomService {
                       .chatRoomCid(chatRoom.getChatRoomCid())
                       .name(mate.getName())
                       .myId(user.getUserId())
-                      .profileImage(user.getProfileImage().getFileUrl())
+                      .profileImage(mate.getProfileImage().getFileUrl())
                       .time(formattedTime)
                       .build();
             }
