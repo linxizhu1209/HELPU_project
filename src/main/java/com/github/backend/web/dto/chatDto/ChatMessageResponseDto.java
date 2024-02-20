@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 public class ChatMessageResponseDto {
     private String sender;
     private String content;
-    private LocalDateTime timeStamp;
+    private Long timeStamp;
 
 
 

@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 public class ChatMessageRequestDto {
     private String message;
     private String sender;
-    private String sendAt;
-
+    private Long sendAt;
+    private String profileImage;
     @Builder
     public ChatMessageRequestDto(String message) {
         this.message = message;
