@@ -23,4 +23,6 @@ public class ChatRoomResponseDto {
 
     private final String myId;
 
+    private final String profileImage;
+
 }
