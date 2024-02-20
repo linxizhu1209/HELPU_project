@@ -259,9 +259,8 @@ public class MateService {
         return new MainPageDto(count);
     }
 
-
     public MyPageDto countCareStatus(CustomMateDetails customMateDetails) {
-        MateEntity mate = customMateDetails.getMate();
+        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid()).orElseThrow(() -> new CommonException("존재하지 않는 메이트입니다.", ErrorCode.FAIL_RESPONSE));
         int waitingCount = careRepository.countByCareStatus(CareStatus.WAITING);
         int inProgressCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.IN_PROGRESS, mate);
         int finishCount = mateCareHistoryRepository.countByMateCareStatusAndMate(MateCareStatus.HELP_DONE, mate);
