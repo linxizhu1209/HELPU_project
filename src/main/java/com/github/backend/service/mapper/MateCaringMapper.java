@@ -16,6 +16,7 @@ public interface MateCaringMapper {
         @Mapping(target="startTime",source="careDateTime")
         @Mapping(target="finishTime",source="requiredTime")
         @Mapping(target="content",source="content")
+        @Mapping(target="myId",source="mate.mateId")
         CaringDto CareEntityToDTO(CareEntity careEntity);
 
     }

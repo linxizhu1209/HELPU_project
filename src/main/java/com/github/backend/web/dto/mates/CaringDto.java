@@ -30,4 +30,5 @@ public class CaringDto {
     private String imageAddress;
     @Schema(description = "해당 서비스의 채팅방 고유 번호",example = "1")
     private Long roomCid;
+    private String myId;
 }

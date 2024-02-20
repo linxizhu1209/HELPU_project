@@ -28,7 +28,7 @@ public class UserProceedingDto {
     private String Location;
     private Long careCid;
     private Long roomCid;
-
+    private String myId;
 
 
     public static List<UserProceedingDto> careEntityToUserDto2(List<CareEntity> careList, ChatRoomRepository chatRoomRepository){
@@ -44,6 +44,7 @@ public class UserProceedingDto {
                     .Location(careEntity.getDepartureLoc())
                     .content(careEntity.getContent())
                     .Date(convertDateToString(careEntity.getCareDate(), careEntity.getCareDateTime(), careEntity.getRequiredTime()))
+                    .myId(careEntity.getUser().getUserId())
                     .roomCid(roomCid).build();
             proceedingService.add(userProceedingDto);
         }

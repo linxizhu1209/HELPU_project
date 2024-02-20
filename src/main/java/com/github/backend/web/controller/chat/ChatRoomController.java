@@ -40,7 +40,7 @@ public class ChatRoomController {
     }
 
     @Operation(summary = "메이트 채팅방 조회", description = "메이트 채팅방 목록을 조회합니다.")
-    @GetMapping("/mateChatlist")
+    @GetMapping("/mateChatList")
     public ResponseEntity<List<ChatRoomResponseDto>> getAllChatList(@AuthenticationPrincipal CustomMateDetails customMateDetails){
         List<ChatRoomResponseDto> chatRoomList = chatRoomService.findMateChatRoomList(customMateDetails);
         return ResponseEntity.ok().body(chatRoomList);
