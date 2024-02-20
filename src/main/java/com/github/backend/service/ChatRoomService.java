@@ -73,19 +73,35 @@ public class ChatRoomService {
 
     public List<ChatRoomResponseDto> findMateChatRoomList(CustomMateDetails customMateDetails) {
         log.info("해당 메이트가 참가하고 있는 대화방 목록 조회 요청이 들어왔습니다.");
-        MateEntity mate = customMateDetails.getMate();
+        MateEntity mate = mateRepository.findById(customMateDetails.getMate().getMateCid())
+                .orElseThrow(() -> new CommonException("존재하지 않은 메이트입니다.", ErrorCode.FAIL_RESPONSE));
+
         List<ChatRoomEntity> chatRooms = chatRoomRepository.findAllByMateCid(mate.getMateCid());
         List<ChatRoomResponseDto> chatRoomResponseDtos = new ArrayList<>();
 
         for (ChatRoomEntity chatRoom : chatRooms) {
             UserEntity user = authRepository.findById(chatRoom.getUserCid()).orElseThrow();
             Long formattedTime = TimestampUtil.convertLocalDateTimeToTimestamp(chatRoom.getUpdatedAt());
-            ChatRoomResponseDto chatRoomResponseDto = ChatRoomResponseDto.builder()
-                    .chatRoomCid(chatRoom.getChatRoomCid())
-                    .name(user.getName())
-                    .myId(mate.getMateId())
-                    .time(formattedTime)
-                    .build();
+            ChatRoomResponseDto chatRoomResponseDto = null;
+
+            if(mate.getProfileImage() == null){
+              chatRoomResponseDto = ChatRoomResponseDto.builder()
+                      .chatRoomCid(chatRoom.getChatRoomCid())
+                      .name(user.getName())
+                      .myId(mate.getMateId())
+                      .profileImage(null)
+                      .time(formattedTime)
+                      .build();
+            }else{
+              chatRoomResponseDto = ChatRoomResponseDto.builder()
+                      .chatRoomCid(chatRoom.getChatRoomCid())
+                      .name(user.getName())
+                      .myId(mate.getMateId())
+                      .profileImage(mate.getProfileImage().getFileUrl())
+                      .time(formattedTime)
+                      .build();
+            }
+
             chatRoomResponseDtos.add(chatRoomResponseDto);
         }
 
@@ -95,19 +111,34 @@ public class ChatRoomService {
 
     public List<ChatRoomResponseDto> findUserChatRoomList(CustomUserDetails customUserDetails) {
         log.info("해당 사용자가 참가하고 있는 대화방 목록 조회 요청이 들어왔습니다.");
-        UserEntity user = customUserDetails.getUser();
+        UserEntity user = authRepository.findById(customUserDetails.getUser().getUserCid())
+                .orElseThrow(() -> new CommonException("존재하지 않은 유저입니다.", ErrorCode.FAIL_RESPONSE));
+
         List<ChatRoomEntity> chatRooms = chatRoomRepository.findAllByUserCid(user.getUserCid());
         List<ChatRoomResponseDto> chatRoomResponseDtos = new ArrayList<>();
 
         for (ChatRoomEntity chatRoom : chatRooms) {
             MateEntity mate = mateRepository.findById(chatRoom.getMateCid()).orElseThrow();
             Long formattedTime = TimestampUtil.convertLocalDateTimeToTimestamp(chatRoom.getUpdatedAt());
-            ChatRoomResponseDto chatRoomResponseDto = ChatRoomResponseDto.builder()
-                    .chatRoomCid(chatRoom.getChatRoomCid())
-                    .name(mate.getName())
-                    .myId(user.getUserId())
-                    .time(formattedTime)
-                    .build();
+            ChatRoomResponseDto chatRoomResponseDto = null;
+            if(user.getProfileImage() == null){
+              chatRoomResponseDto = ChatRoomResponseDto.builder()
+                      .chatRoomCid(chatRoom.getChatRoomCid())
+                      .name(mate.getName())
+                      .myId(user.getUserId())
+                      .profileImage(null)
+                      .time(formattedTime)
+                      .build();
+            }else{
+              chatRoomResponseDto = ChatRoomResponseDto.builder()
+                      .chatRoomCid(chatRoom.getChatRoomCid())
+                      .name(mate.getName())
+                      .myId(user.getUserId())
+                      .profileImage(user.getProfileImage().getFileUrl())
+                      .time(formattedTime)
+                      .build();
+            }
+
             chatRoomResponseDtos.add(chatRoomResponseDto);
         }
         chatRoomResponseDtos.sort(Comparator.comparing(ChatRoomResponseDto::getTime).reversed());
