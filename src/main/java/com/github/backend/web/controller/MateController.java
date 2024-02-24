@@ -9,6 +9,7 @@ import com.github.backend.web.dto.mates.MyPageDto;
 import com.github.backend.web.dto.users.RequestUpdateDto;
 import com.github.backend.web.dto.users.ResponseMyInfoDto;
 import com.github.backend.web.entity.custom.CustomMateDetails;
+import com.github.backend.web.entity.enums.MateCareStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -86,11 +87,11 @@ public class MateController {
     @Operation(summary = "지원한 도움 목록 조회", description = "지원한 도움 목록을 조회한다/진행중/완료")
     @GetMapping("/careHistory")
     public ResponseEntity<List<CaringDto>> viewApplyList(
-            @RequestParam String careStatus,
+            @RequestParam String mateCareStatus,
             @AuthenticationPrincipal CustomMateDetails customMateDetails
     ){
         log.info("[GET] 메이트의 도움 내역 조회 요청 들어왔습니다");
-        List<CaringDto> caringList = mateService.viewApplyList(careStatus,customMateDetails);
+        List<CaringDto> caringList = mateService.viewApplyList(mateCareStatus,customMateDetails);
         return ResponseEntity.ok().body(caringList);
     }
 
