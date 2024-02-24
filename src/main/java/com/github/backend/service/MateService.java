@@ -16,8 +16,10 @@ import com.github.backend.web.entity.custom.CustomMateDetails;
 import com.github.backend.web.entity.enums.CareStatus;
 import com.github.backend.web.entity.enums.ErrorCode;
 import com.github.backend.web.entity.enums.MateCareStatus;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional
+
 public class MateService {
 
     private final PasswordEncoder passwordEncoder;
@@ -41,9 +44,14 @@ public class MateService {
     private final ProfileImageRepository profileImageRepository;
     private final ChatRoomRepository chatRoomRepository;
 
+
     public CommonResponseDto applyCaring(Long careId, CustomMateDetails customMateDetails) {
         Long mateId = customMateDetails.getMate().getMateCid();
         CareEntity care = careRepository.findById(careId).orElseThrow(()->new CommonException("요청하신 도움신청건을 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
+        if(care.getCareStatus().equals(CareStatus.IN_PROGRESS)){
+            throw new CommonException("요청하신 도움은 이미 지원완료되었습니다. 다른 도움에 지원해주세요!",ErrorCode.BAD_REQUEST_RESPONSE);
+        }
+
         MateEntity mate = mateRepository.findById(mateId).orElseThrow(()->new CommonException("해당 메이트를 찾을 수 없습니다.", ErrorCode.FAIL_RESPONSE));
         // 만약 동일한 날짜 같은 시간대에 이미 신청한 도움이 있다면 신청불가능하게끔하기
         List<MateCareHistoryEntity> mateCareHistoryEntities = mateCareHistoryRepository.findAllByMateAndMateCareStatus(mate, MateCareStatus.IN_PROGRESS);
@@ -72,8 +80,7 @@ public class MateService {
 
         careRepository.save(care);
 
-        return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build();
-    }
+        return CommonResponseDto.builder().code(200).success(true).message("도움 지원이 완료되었습니다!").build(); }
 
 
     public CommonResponseDto finishCaring(Long careCid, CustomMateDetails customMateDetails) {
